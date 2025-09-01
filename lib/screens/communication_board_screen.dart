@@ -62,8 +62,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Row(
                       children: [
-                        Icon(Icons.record_voice_over, size: 28, color: theme.textInverse),
-                        const SizedBox(width: 16),
+                        // Microphone icon removed as requested
                         Expanded(
                           child: Text(
                             appTitle,
