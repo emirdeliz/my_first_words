@@ -55,9 +55,9 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // Header
+                // Header com cor sólida (tons pastéis preferidos)
                 Container(
-                  color: theme.primary,
+                  color: theme.primary.withValues(alpha: 0.9),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Row(

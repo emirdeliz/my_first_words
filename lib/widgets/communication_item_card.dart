@@ -103,37 +103,41 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.1),
-                          widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.05),
-                        ],
-                      ),
+                      color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.08),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Ícone com efeito de brilho
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.3),
-                                blurRadius: 6,
-                                spreadRadius: 1,
+                        // Ícone/Emoji grande com brilho divertido
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _pastelVariant(
+                                  widget.theme.getItemColor(widget.item.type),
+                                  widget.item.icon,
+                                  saturation: 0.35,
+                                  lightness: 0.90,
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.20),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Icon(
-                            _getIconData(widget.item.icon),
-                            size: 32,
-                            color: widget.theme.getItemColor(widget.item.type),
-                          ),
+                            ),
+                            _buildIconOrEmoji(widget.item.icon, widget.item.type, widget.theme.getItemColor(widget.item.type)),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         // Texto com estilo melhorado
@@ -253,5 +257,66 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
       default:
         return Icons.help;
     }
+  }
+
+  // Constrói apenas ícone Material (sem emojis). Se vier emoji, cai no ícone da categoria
+  Widget _buildIconOrEmoji(String iconName, String type, Color color) {
+    final String effectiveIcon = iconName.startsWith('emoji:') ? _defaultIconNameForType(type) : iconName;
+    return Icon(
+      _getIconData(effectiveIcon),
+      size: 36,
+      color: _pastelVariant(color, effectiveIcon, saturation: 0.45, lightness: 0.72),
+    );
+  }
+
+  String _getBadgeEmoji(String type) {
+    switch (type) {
+      case 'basic':
+        return '';
+      case 'emotions':
+        return '';
+      case 'activities':
+        return '';
+      case 'social':
+        return '';
+      default:
+        return '';
+    }
+  }
+
+  String _defaultIconNameForType(String type) {
+    switch (type) {
+      case 'basic':
+        return 'restaurant';
+      case 'emotions':
+        return 'sentiment_satisfied';
+      case 'activities':
+        return 'sports_esports';
+      case 'social':
+        return 'people';
+      default:
+        return 'help';
+    }
+  }
+
+  Color _toPastel(Color base) {
+    final hsl = HSLColor.fromColor(base);
+    final hslPastel = hsl
+        .withSaturation((hsl.saturation * 0.35).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 0.85 + 0.15).clamp(0.0, 1.0));
+    return hslPastel.toColor();
+  }
+
+  // Gera uma variação pastel determinística a partir de uma cor base e uma seed (ex.: nome do ícone)
+  Color _pastelVariant(Color base, String seed, {double saturation = 0.35, double lightness = 0.85, double hueDeltaDegrees = 18}) {
+    final hsl = HSLColor.fromColor(base);
+    final int hash = seed.codeUnits.fold(0, (acc, c) => acc + c);
+    final int deltaIndex = (hash % 5) - 2; // -2..2
+    final double newHue = (hsl.hue + deltaIndex * hueDeltaDegrees) % 360;
+    final HSLColor shifted = hsl
+        .withHue(newHue)
+        .withSaturation((hsl.saturation * saturation).clamp(0.0, 1.0))
+        .withLightness(lightness.clamp(0.0, 1.0));
+    return shifted.toColor();
   }
 }
