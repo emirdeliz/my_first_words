@@ -56,7 +56,7 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Configuração Parental',
+                                translation('ui.parentalConfig'),
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -66,7 +66,7 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Configure quais áudios estarão disponíveis para a criança no app principal.',
+                          translation('ui.configureAudiosDesc'),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 16),
@@ -87,7 +87,7 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
                                 // Preview: falar uma frase curta com a voz selecionada
                                 final audio = AudioService();
                                 await audio.initialize();
-                                await audio.speak('Olá! Esta é uma prévia da voz.');
+                                await audio.speak(translation('ui.previewSample'));
                               },
                               icon: const Icon(Icons.play_arrow),
                               label: Text(LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.preview')),
@@ -128,11 +128,15 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
                         ...List.generate(3, (index) {
                           final level = index + 1;
                           final isSelected = parentalProvider.communicationLevel == level;
-                          final titles = ['Palavras', 'Frases Curtas', 'Frases Complexas'];
+                          final titles = [
+                            translation('parentalConfig.level1Title'),
+                            translation('parentalConfig.level2Title'),
+                            translation('parentalConfig.level3Title'),
+                          ];
                           final descriptions = [
-                            'Palavras simples: "Água", "Comida", "Ajuda"',
-                            'Frases curtas: "Quero água", "Estou com fome"',
-                            'Frases completas: "Eu gostaria de beber água, por favor"'
+                            translation('parentalConfig.level1Desc'),
+                            translation('parentalConfig.level2Desc'),
+                            translation('parentalConfig.level3Desc'),
                           ];
                           
                           return Padding(
@@ -223,7 +227,7 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
 
                 // Categorias
                 Text(
-                  'Categorias',
+                  translation('ui.categories'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -320,18 +324,7 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
   }
 
   String _getCategoryDisplayName(String categoryKey, Function translation) {
-    switch (categoryKey) {
-      case 'basicNeeds':
-        return 'Necessidades Básicas';
-      case 'emotions':
-        return 'Emoções';
-      case 'activities':
-        return 'Atividades';
-      case 'social':
-        return 'Social';
-      default:
-        return categoryKey;
-    }
+    return translation('categories.' + categoryKey);
   }
 
   IconData _getIconData(String iconName) {
@@ -425,7 +418,7 @@ class _CategoryConfigModalState extends State<CategoryConfigModal> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Configurar ${widget.categoryName}',
+                        '${context.read<LanguageProvider>().getTranslation('ui.configure')} ${widget.categoryName}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -450,7 +443,7 @@ class _CategoryConfigModalState extends State<CategoryConfigModal> {
                           setState(() {}); // Força atualização da UI
                         },
                         icon: const Icon(Icons.check_circle),
-                        label: const Text('Habilitar Todos'),
+                        label: Text(context.read<LanguageProvider>().getTranslation('ui.enableAll')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
@@ -465,7 +458,7 @@ class _CategoryConfigModalState extends State<CategoryConfigModal> {
                           setState(() {}); // Força atualização da UI
                         },
                         icon: const Icon(Icons.cancel),
-                        label: const Text('Desabilitar Todos'),
+                        label: Text(context.read<LanguageProvider>().getTranslation('ui.disableAll')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
@@ -656,7 +649,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
   Future<void> _previewVoice(String voiceName, String locale) async {
     try {
       await _audioService.setSpecificVoice(voiceName, locale);
-      await _audioService.speak('Olá! Esta é uma prévia da voz.');
+      await _audioService.speak(context.read<LanguageProvider>().getTranslation('ui.previewSample'));
     } catch (e) {
       // Ignore errors for preview
     }
@@ -694,14 +687,14 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Escolher Voz',
+                          context.read<LanguageProvider>().getTranslation('ui.chooseVoice'),
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                         ),
                         Text(
-                          'Selecione a voz que o app usará para falar',
+                          context.read<LanguageProvider>().getTranslation('ui.selectVoiceSubtitle'),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
                           ),
@@ -725,34 +718,44 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: _isLoading
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Carregando vozes disponíveis...'),
-                          ],
-                        ),
-                      )
-                    : _availableVoices.isEmpty
-                        ? const Center(
+                    ? Consumer<LanguageProvider>(
+                        builder: (context, languageProvider, child) {
+                          final translation = languageProvider.getTranslation;
+                          return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.voice_over_off, size: 64, color: Colors.grey),
-                                SizedBox(height: 16),
-                                Text('Nenhuma voz disponível'),
+                                const CircularProgressIndicator(),
+                                const SizedBox(height: 16),
+                                Text(translation('ui.loadingVoices')),
                               ],
                             ),
+                          );
+                        },
+                      )
+                    : _availableVoices.isEmpty
+                        ? Consumer<LanguageProvider>(
+                            builder: (context, languageProvider, child) {
+                              final translation = languageProvider.getTranslation;
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.voice_over_off, size: 64, color: Colors.grey),
+                                    const SizedBox(height: 16),
+                                    Text(translation('ui.noVoices')),
+                                  ],
+                                ),
+                              );
+                            },
                           )
                         : ListView.separated(
                             itemCount: _availableVoices.length,
                             separatorBuilder: (context, index) => const SizedBox(height: 8),
                             itemBuilder: (context, index) {
                               final voice = _availableVoices[index];
-                              final name = voice['name']?.toString() ?? 'Desconhecida';
-                              final locale = voice['locale']?.toString() ?? 'Desconhecido';
+                              final name = voice['name']?.toString() ?? 'Unknown';
+                              final locale = voice['locale']?.toString() ?? 'Unknown';
                               final isSelected = _selectedVoiceName == name;
                               
                               return Container(
@@ -814,7 +817,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
                                         Icons.play_arrow,
                                         color: Theme.of(context).colorScheme.secondary,
                                       ),
-                                      tooltip: 'Testar voz',
+                                      tooltip: 'Preview',
                                     ),
                                   ),
                                   onTap: () {
@@ -846,7 +849,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Cancelar'),
+                      child: Text(context.read<LanguageProvider>().getTranslation('ui.cancel')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -861,7 +864,7 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Confirmar'),
+                      child: Text(context.read<LanguageProvider>().getTranslation('ui.confirm')),
                     ),
                   ),
                 ],
