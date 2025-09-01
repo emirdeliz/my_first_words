@@ -106,6 +106,7 @@ class ParentalConfigProvider with ChangeNotifier {
     {'id': 'activities-sleep', 'categoryId': 'activities', 'textKey': 'sleep', 'icon': 'bedtime', 'type': 'activities'},
     {'id': 'activities-read', 'categoryId': 'activities', 'textKey': 'read', 'icon': 'book', 'type': 'activities'},
     {'id': 'activities-draw', 'categoryId': 'activities', 'textKey': 'draw', 'icon': 'brush', 'type': 'activities'},
+    {'id': 'activities-toy', 'categoryId': 'activities', 'textKey': 'toy', 'icon': 'toys', 'type': 'activities'},
     
     // Social
     {'id': 'social-hello', 'categoryId': 'social', 'textKey': 'hello', 'icon': 'waving_hand', 'type': 'social'},
@@ -115,6 +116,9 @@ class ParentalConfigProvider with ChangeNotifier {
     {'id': 'social-sorry', 'categoryId': 'social', 'textKey': 'sorry', 'icon': 'favorite', 'type': 'social'},
     {'id': 'social-yes', 'categoryId': 'social', 'textKey': 'yes', 'icon': 'thumb_up', 'type': 'social'},
     {'id': 'social-no', 'categoryId': 'social', 'textKey': 'no', 'icon': 'thumb_down', 'type': 'social'},
+    {'id': 'social-da', 'categoryId': 'social', 'textKey': 'da', 'icon': 'pan_tool', 'type': 'social'},
+    {'id': 'social-ei', 'categoryId': 'social', 'textKey': 'ei', 'icon': 'waving_hand', 'type': 'social'},
+    {'id': 'social-more', 'categoryId': 'social', 'textKey': 'more', 'icon': 'add_circle', 'type': 'social'},
   ];
 
   ParentalConfigProvider() {

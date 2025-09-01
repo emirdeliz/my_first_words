@@ -112,37 +112,8 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Ícone/Emoji grande com brilho divertido
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _pastelVariant(
-                                  widget.theme.getItemColor(widget.item.type),
-                                  widget.item.icon,
-                                  saturation: 0.35,
-                                  lightness: 0.90,
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  width: 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.20),
-                                    blurRadius: 10,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            _buildIconOrEmoji(widget.item.icon, widget.item.type, widget.theme.getItemColor(widget.item.type)),
-                          ],
-                        ),
+                        // Ícone isométrico sem background
+                        _buildFunImage(widget.item.icon, widget.item.type, widget.theme.getItemColor(widget.item.type)),
                         const SizedBox(height: 8),
                         // Texto com estilo melhorado
                         Text(
@@ -161,10 +132,10 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.2),
+                            color: _vibrantVariant(widget.theme.getItemColor(widget.item.type), widget.item.type).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.3),
+                              color: _vibrantVariant(widget.theme.getItemColor(widget.item.type), widget.item.type).withValues(alpha: 0.4),
                               width: 1,
                             ),
                           ),
@@ -173,7 +144,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: widget.theme.getItemColor(widget.item.type),
+                              color: _vibrantVariant(widget.theme.getItemColor(widget.item.type), widget.item.type),
                             ),
                           ),
                         ),
@@ -204,73 +175,103 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
     }
   }
 
-  IconData _getIconData(String iconName) {
-    switch (iconName) {
-      case 'restaurant':
-        return Icons.restaurant;
-      case 'sentiment_satisfied':
-        return Icons.sentiment_satisfied;
-      case 'sports_esports':
-        return Icons.sports_esports;
-      case 'people':
-        return Icons.people;
-      case 'local_drink':
-        return Icons.local_drink;
-      case 'wc':
-        return Icons.wc;
-      case 'bedtime':
-        return Icons.bedtime;
-      case 'healing':
-        return Icons.healing;
-      case 'help':
-        return Icons.help;
-      case 'sentiment_dissatisfied':
-        return Icons.sentiment_dissatisfied;
-      case 'mood_bad':
-        return Icons.mood_bad;
-      case 'sentiment_very_dissatisfied':
-        return Icons.sentiment_very_dissatisfied;
-      case 'sentiment_very_satisfied':
-        return Icons.sentiment_very_satisfied;
-      case 'sentiment_neutral':
-        return Icons.sentiment_neutral;
-      case 'book':
-        return Icons.book;
-      case 'brush':
-        return Icons.brush;
-      case 'waving_hand':
-        return Icons.waving_hand;
-      case 'favorite':
-        return Icons.favorite;
-      case 'thumb_up':
-        return Icons.thumb_up;
-      case 'thumb_down':
-        return Icons.thumb_down;
-      case 'toys':
-        return Icons.toys;
-      case 'local_cafe':
-        return Icons.local_cafe;
-      case 'pan_tool':
-        return Icons.pan_tool;
-      case 'favorite_border':
-        return Icons.favorite_border;
-      case 'check_circle':
-        return Icons.check_circle;
-      case 'cancel':
-        return Icons.cancel;
-      default:
-        return Icons.help;
-    }
-  }
+  // Método _getIconData removido - agora usa apenas imagens PNG personalizadas
 
-  // Constrói apenas ícone Material (sem emojis). Se vier emoji, cai no ícone da categoria
-  Widget _buildIconOrEmoji(String iconName, String type, Color color) {
-    final String effectiveIcon = iconName.startsWith('emoji:') ? _defaultIconNameForType(type) : iconName;
-    return Icon(
-      _getIconData(effectiveIcon),
-      size: 36,
-      color: _pastelVariant(color, effectiveIcon, saturation: 0.45, lightness: 0.72),
+  // Constrói imagem divertida baseada no tipo e ícone
+  Widget _buildFunImage(String iconName, String type, Color color) {
+    final String imageName = _getImageName(iconName, type);
+    
+    return _buildImageOrIcon(imageName, color);
+  }
+  
+  Widget _buildImageOrIcon(String imageName, Color color) {
+    return Image.asset(
+      'assets/images/fun/$imageName.png',
+      width: 48,
+      height: 48,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text(
+              imageName.substring(0, 1).toUpperCase(),
+              style: TextStyle(
+                color: color,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+      },
     );
+  }
+  
+
+  
+  String _getImageName(String iconName, String type) {
+    // Mapeamento de ícones para nomes de imagem divertidos
+    switch (iconName) {
+      // Necessidades básicas
+      case 'restaurant':
+        return 'food';
+      case 'local_drink':
+        return 'drink';
+      case 'wc':
+        return 'bathroom';
+      case 'bedtime':
+        return 'sleep';
+      case 'healing':
+        return 'medicine';
+      case 'help':
+        return 'help';
+      
+      // Emoções
+      case 'sentiment_satisfied':
+        return 'happy';
+      case 'sentiment_dissatisfied':
+        return 'sad';
+      case 'mood_bad':
+        return 'angry';
+      case 'sentiment_very_dissatisfied':
+        return 'scared';
+      case 'sentiment_very_satisfied':
+        return 'excited';
+      case 'sentiment_neutral':
+        return 'tired';
+      
+      // Atividades
+      case 'sports_esports':
+        return 'play';
+      case 'book':
+        return 'read';
+      case 'brush':
+        return 'draw';
+      case 'toys':
+        return 'toys';
+      
+      // Social
+      case 'waving_hand':
+        return 'hello';
+      case 'favorite':
+        return 'love';
+      case 'thumb_up':
+        return 'yes';
+      case 'thumb_down':
+        return 'no';
+      case 'pan_tool':
+        return 'da';
+      case 'add_circle':
+        return 'more';
+      
+      default:
+        return iconName;
+    }
   }
 
   String _getBadgeEmoji(String type) {
@@ -320,6 +321,19 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
     final HSLColor shifted = hsl
         .withHue(newHue)
         .withSaturation((hsl.saturation * saturation).clamp(0.0, 1.0))
+        .withLightness(lightness.clamp(0.0, 1.0));
+    return shifted.toColor();
+  }
+  
+  // Gera uma variação vibrante determinística a partir de uma cor base e uma seed
+  Color _vibrantVariant(Color base, String seed, {double saturation = 0.85, double lightness = 0.65, double hueDeltaDegrees = 25}) {
+    final hsl = HSLColor.fromColor(base);
+    final int hash = seed.codeUnits.fold(0, (acc, c) => acc + c);
+    final int deltaIndex = (hash % 7) - 3; // -3..3
+    final double newHue = (hsl.hue + deltaIndex * hueDeltaDegrees) % 360;
+    final HSLColor shifted = hsl
+        .withHue(newHue)
+        .withSaturation(saturation.clamp(0.0, 1.0))
         .withLightness(lightness.clamp(0.0, 1.0));
     return shifted.toColor();
   }
