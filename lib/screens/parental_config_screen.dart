@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/parental_config_provider.dart';
 import '../providers/language_provider.dart';
 import '../models/language_model.dart';
-
+import '../design_system/design_system.dart';
 import '../services/audio_service.dart';
 
 class ParentalConfigScreen extends StatefulWidget {
@@ -24,8 +24,8 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.parentalConfig')),
+      appBar: DSHeader(
+        title: LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.parentalConfig'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
@@ -40,62 +40,55 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Cabeçalho
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.family_restroom,
-                              size: 28,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                translation('ui.parentalConfig'),
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          translation('ui.configureAudiosDesc'),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        // Seleção de voz específica
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                _showVoiceSelectionDialog(context, parentalProvider);
-                              },
-                              icon: const Icon(Icons.record_voice_over),
-                              label: Text(LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.chooseVoice')),
-                            ),
-                            const SizedBox(width: 8),
-                            OutlinedButton.icon(
-                              onPressed: () async {
-                                // Preview: falar uma frase curta com a voz selecionada
-                                final audio = AudioService();
-                                await audio.initialize();
-                                await audio.speak(translation('ui.previewSample'));
-                              },
-                              icon: const Icon(Icons.play_arrow),
-                              label: Text(LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.preview')),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                DSCard(
+                  sp4: true,
+                  br3: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          DSIcon(
+                            Icons.family_restroom,
+                            icon4: true,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const DSHorizontalSpacing.md(),
+                          Expanded(
+                            child: DSTitle(translation('ui.parentalConfig')),
+                          ),
+                        ],
+                      ),
+                      const DSVerticalSpacing.sm(),
+                      DSBody(translation('ui.configureAudiosDesc')),
+                      const DSVerticalSpacing.lg(),
+                      // Seleção de voz específica
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          DSButton(
+                            text: LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.chooseVoice'),
+                            icon: Icons.record_voice_over,
+                            outlined: true,
+                            onPressed: () {
+                              _showVoiceSelectionDialog(context, parentalProvider);
+                            },
+                          ),
+                          const DSHorizontalSpacing.sm(),
+                          DSButton(
+                            text: LanguageModel.supportedLanguages[context.read<LanguageProvider>().currentLanguageCode]!.getTranslation('ui.preview'),
+                            icon: Icons.play_arrow,
+                            outlined: true,
+                            onPressed: () async {
+                              // Preview: falar uma frase curta com a voz selecionada
+                              final audio = AudioService();
+                              await audio.initialize();
+                                                              await audio.speak(translation('ui.previewSample'), languageProvider.currentLanguageCode);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 

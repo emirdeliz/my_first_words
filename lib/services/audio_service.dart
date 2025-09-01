@@ -10,28 +10,30 @@ class AudioService {
   final FlutterTts _flutterTts = FlutterTts();
   bool _isInitialized = false;
 
-  Future<void> initialize() async {
+  Future<void> initialize([String? languageCode]) async {
     if (_isInitialized) return;
 
     try {
+      final language = languageCode ?? 'pt-BR';
+      
       // Web TTS availability depends on browser; offline generally not guaranteed
       if (kIsWeb) {
-        await _flutterTts.setLanguage('pt-BR');
+        await _flutterTts.setLanguage(language);
         await _flutterTts.setSpeechRate(0.5);
         await _flutterTts.setVolume(1.0);
         await _flutterTts.setPitch(1.0);
         _isInitialized = true;
-        print('✅ AudioService initialized for Web');
+        print('✅ AudioService initialized for Web with language: $language');
         return;
       }
-      await _flutterTts.setLanguage('pt-BR');
+      await _flutterTts.setLanguage(language);
       await _flutterTts.setSpeechRate(0.5);
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(1.0);
-      await _applyPreferredVoice();
+      await _applyPreferredVoice(language);
       
       _isInitialized = true;
-      print('✅ AudioService initialized successfully');
+      print('✅ AudioService initialized successfully with language: $language');
     } catch (e) {
       print('❌ Error initializing AudioService: $e');
     }
@@ -51,9 +53,10 @@ class AudioService {
     return !requiresNetworkBool && !looksCloud && !engine.contains('cloud');
   }
 
-  Future<void> _applyPreferredVoice([String? specificProfile]) async {
+  Future<void> _applyPreferredVoice([String? specificProfile, String? languageCode]) async {
     try {
       String voiceProfile = specificProfile ?? 'female';
+      final language = languageCode ?? 'pt-BR';
       
       if (specificProfile == null) {
         final prefs = await SharedPreferences.getInstance();
@@ -70,12 +73,27 @@ class AudioService {
       final voices = await getAvailableVoices();
 
       Map<String, dynamic>? selected;
-      bool isPortuguese(Map<String, dynamic> v) {
+      bool matchesLanguage(Map<String, dynamic> v, String targetLanguage) {
         final name = (v['name'] ?? '').toString().toLowerCase();
         final locale = (v['locale'] ?? '').toString().toLowerCase();
-        final isPtBr = locale.contains('pt-br') || locale.contains('pt_br') || name.contains('pt-br') || name.contains('pt_br') || name.contains('brazil');
-        final isPtPt = locale.contains('pt-pt') || locale.contains('pt_pt') || name.contains('pt-pt') || name.contains('pt_pt') || name.contains('portugal');
-        return isPtBr && !isPtPt;
+        
+        switch (targetLanguage.toLowerCase()) {
+          case 'pt-br':
+            final isPtBr = locale.contains('pt-br') || locale.contains('pt_br') || name.contains('pt-br') || name.contains('pt_br') || name.contains('brazil');
+            final isPtPt = locale.contains('pt-pt') || locale.contains('pt_pt') || name.contains('pt-pt') || name.contains('pt_pt') || name.contains('portugal');
+            return isPtBr && !isPtPt;
+          case 'en':
+          case 'en-us':
+            return locale.contains('en') || name.contains('en') || name.contains('english') || name.contains('us');
+          case 'es':
+          case 'es-es':
+            return locale.contains('es') || name.contains('es') || name.contains('spanish') || name.contains('español');
+          case 'de':
+          case 'de-de':
+            return locale.contains('de') || name.contains('de') || name.contains('german') || name.contains('deutsch');
+          default:
+            return locale.contains(targetLanguage.toLowerCase()) || name.contains(targetLanguage.toLowerCase());
+        }
       }
 
       bool matchesGender(Map<String, dynamic> v, String gender) {
@@ -92,25 +110,25 @@ class AudioService {
         return false;
       }
 
-      // Filter pt-BR voices first
-      final List<Map<String, dynamic>> portugueseVoices = [];
+      // Filter voices for the target language
+      final List<Map<String, dynamic>> languageVoices = [];
       for (final voice in voices) {
-        if (isPortuguese(voice)) {
-          portugueseVoices.add(voice);
+        if (matchesLanguage(voice, language)) {
+          languageVoices.add(voice);
         }
       }
 
-      if (portugueseVoices.isEmpty) {
-        print('⚠️ No Portuguese voices found, using default');
+      if (languageVoices.isEmpty) {
+        print('⚠️ No voices found for language $language, using default');
         return;
       }
 
       // Prefer offline-capable voices
       final offlineCandidates = <Map<String, dynamic>>[];
-      for (final v in portugueseVoices) {
+      for (final v in languageVoices) {
         if (_isVoiceOfflineCapable(v)) offlineCandidates.add(v);
       }
-      final source = offlineCandidates.isNotEmpty ? offlineCandidates : portugueseVoices;
+      final source = offlineCandidates.isNotEmpty ? offlineCandidates : languageVoices;
 
       // Try to find a voice that matches the profile
       Map<String, dynamic>? selectedVoice;
@@ -196,9 +214,12 @@ class AudioService {
     }
   }
 
-  Future<void> speak(String text) async {
+  Future<void> speak(String text, [String? languageCode]) async {
     if (!_isInitialized) {
-      await initialize();
+      await initialize(languageCode);
+    } else if (languageCode != null) {
+      // If already initialized but language changed, update it
+      await setLanguage(languageCode);
     }
 
     try {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/language_provider.dart';
+import '../design_system/design_system.dart';
 import '../services/audio_service.dart';
 
 class TTSTestScreen extends StatefulWidget {
@@ -45,7 +46,8 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
     });
 
     try {
-      await _audioService.speak('Teste básico do TTS');
+      final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+      await _audioService.speak('Teste básico do TTS', languageCode);
       setState(() {
         _status = 'Teste concluído!';
       });
@@ -70,7 +72,8 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       await _audioService.setSpeechRate(0.3);
       await _audioService.setVolume(0.8);
       await _audioService.setPitch(1.2);
-      await _audioService.speak('Teste com velocidade lenta, volume médio e tom alto');
+      final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+      await _audioService.speak('Teste com velocidade lenta, volume médio e tom alto', languageCode);
       
       setState(() {
         _status = 'Teste com opções concluído!';
@@ -149,8 +152,8 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Teste TTS'),
+      appBar: DSHeader(
+        title: 'Teste TTS',
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
@@ -160,98 +163,84 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Status
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Icon(
-                      _isSpeaking ? Icons.volume_up : Icons.volume_off,
-                      size: 48,
-                      color: _isSpeaking 
-                          ? Theme.of(context).colorScheme.primary 
-                          : Theme.of(context).colorScheme.secondary,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _status,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+            DSCard(
+              sp4: true,
+              br3: true,
+              child: Column(
+                children: [
+                  DSIcon(
+                    _isSpeaking ? Icons.volume_up : Icons.volume_off,
+                    icon7: true,
+                    color: _isSpeaking 
+                        ? Theme.of(context).colorScheme.primary 
+                        : Theme.of(context).colorScheme.secondary,
+                  ),
+                  const DSVerticalSpacing.sm(),
+                  DSTitle(
+                    _status,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const DSVerticalSpacing.xl2(),
 
             // Botões de teste
-            ElevatedButton.icon(
+            DSButton(
+              text: 'Teste Básico',
+              icon: Icons.play_arrow,
+              primary: true,
+              large: true,
               onPressed: _isSpeaking ? null : _testBasicTTS,
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Teste Básico'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-              ),
             ),
 
-            const SizedBox(height: 12),
+            const DSVerticalSpacing.md(),
 
-            ElevatedButton.icon(
+            DSButton(
+              text: 'Teste com Opções',
+              icon: Icons.tune,
+              primary: true,
+              large: true,
               onPressed: _isSpeaking ? null : _testWithOptions,
-              icon: const Icon(Icons.tune),
-              label: const Text('Teste com Opções'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-              ),
             ),
 
-            const SizedBox(height: 12),
+            const DSVerticalSpacing.md(),
 
-            ElevatedButton.icon(
+            DSButton(
+              text: 'Teste de Idiomas (4 idiomas)',
+              icon: Icons.language,
+              primary: true,
+              large: true,
               onPressed: _isSpeaking ? null : _testDifferentLanguages,
-              icon: const Icon(Icons.language),
-              label: const Text('Teste de Idiomas (4 idiomas)'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-              ),
             ),
 
-            const SizedBox(height: 12),
+            const DSVerticalSpacing.md(),
 
-            ElevatedButton.icon(
+            DSButton(
+              text: 'Parar Fala',
+              icon: Icons.stop,
+              danger: true,
+              large: true,
               onPressed: _isSpeaking ? _stopSpeech : null,
-              icon: const Icon(Icons.stop),
-              label: const Text('Parar Fala'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Colors.white,
-              ),
             ),
 
             const Spacer(),
 
             // Informações
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Informações do TTS',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('• Toque nos botões para testar diferentes funcionalidades'),
-                    const Text('• Use o botão "Parar Fala" para interromper o TTS'),
-                    const Text('• Teste 4 idiomas: Português, Inglês, Espanhol e Alemão'),
-                    const Text('• Verifique se o som está funcionando corretamente'),
-                  ],
-                ),
+            DSCard(
+              sp4: true,
+              br3: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DSTitle('Informações do TTS'),
+                  const DSVerticalSpacing.sm(),
+                  const DSBody('• Toque nos botões para testar diferentes funcionalidades'),
+                  const DSBody('• Use o botão "Parar Fala" para interromper o TTS'),
+                  const DSBody('• Teste 4 idiomas: Português, Inglês, Espanhol e Alemão'),
+                  const DSBody('• Verifique se o som está funcionando corretamente'),
+                ],
               ),
             ),
           ],

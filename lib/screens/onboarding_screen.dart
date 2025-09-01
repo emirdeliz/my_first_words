@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/language_provider.dart';
+import '../design_system/design_system.dart';
 import '../screens/communication_board_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -41,9 +42,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const Spacer(),
           Consumer<LanguageProvider>(
             builder: (context, languageProvider, child) {
-              return TextButton(
+              return DSButton(
+                text: languageProvider.getTranslation('ui.skip'),
+                ghost: true,
                 onPressed: _completeOnboarding,
-                child: Text(languageProvider.getTranslation('ui.skip')),
               );
             },
           ),
@@ -74,10 +76,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             }),
           ),
           const Spacer(),
-          ElevatedButton(
+          DSButton(
+            text: isLast ? 'Começar' : 'Avançar',
+            primary: true,
             onPressed: _goToNext,
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
-            child: Text(isLast ? 'Começar' : 'Avançar'),
           ),
         ],
       ),
@@ -93,16 +95,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           SizedBox(height: 140, child: Center(child: visual)),
           const SizedBox(height: 24),
-          Text(
+          DSTitle(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+            large: true,
           ),
-          const SizedBox(height: 12),
-          Text(
+          const DSVerticalSpacing.md(),
+          DSBody(
             body,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, height: 1.4),
+            large: true,
           ),
         ],
       ),
@@ -142,12 +144,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _buildPage(
                     title: 'Toque e o app fala por você',
                     body: 'Escolha cartões e ouça a fala com TTS. Simples, direto e acolhedor.',
-                    visual: Icon(Icons.record_voice_over, size: 96, color: color),
+                    visual: DSIcon(Icons.record_voice_over, icon8: true, color: color),
                   ),
                   _buildPage(
                     title: 'Configuração Parental',
                     body: 'Ative itens, personalize categorias e cores. Tudo no seu tempo.',
-                    visual: Icon(Icons.settings, size: 96, color: color),
+                    visual: DSIcon(Icons.settings, icon8: true, color: color),
                   ),
                 ],
               ),

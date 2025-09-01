@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/language_model.dart';
+import 'package:provider/provider.dart';
 
 class LanguageProvider extends ChangeNotifier {
   String _currentLanguageCode = 'pt-BR';
@@ -10,10 +11,15 @@ class LanguageProvider extends ChangeNotifier {
       LanguageModel.supportedLanguages[_currentLanguageCode] ?? 
       LanguageModel.supportedLanguages['pt-BR']!;
   
-  void setLanguage(String languageCode) {
+  void setLanguage(String languageCode, [Function(String)? onLanguageChanged]) {
     if (LanguageModel.supportedLanguages.containsKey(languageCode)) {
       _currentLanguageCode = languageCode;
       notifyListeners();
+      
+      // Notificar callback se fornecido
+      if (onLanguageChanged != null) {
+        onLanguageChanged(languageCode);
+      }
     }
   }
   

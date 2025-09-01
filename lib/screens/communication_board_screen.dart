@@ -7,6 +7,7 @@ import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../providers/parental_config_provider.dart';
 import '../services/audio_service.dart';
+import '../design_system/design_system.dart';
 import '../widgets/communication_item_card.dart';
 import 'settings_screen.dart';
 import 'tts_test_screen.dart';
@@ -37,7 +38,8 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
 
   void _handleItemTap(AudioItem item) async {
     try {
-      await _audioService.speak(item.text);
+      final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+      await _audioService.speak(item.text, languageCode);
     } catch (e) {
       print('❌ Error speaking text: $e');
     }
@@ -138,40 +140,34 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            DSIcon(
                               Icons.volume_off,
-                              size: 64,
+                              icon8: true,
                               color: theme.textSecondary,
                             ),
-                            const SizedBox(height: 16),
-                            Text(
+                            const DSVerticalSpacing.lg(),
+                            DSTitle(
                               translation('parentalConfig.noAudioConfigured'),
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: theme.textSecondary,
-                              ),
                               textAlign: TextAlign.center,
+                              color: theme.textSecondary,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
+                            const DSVerticalSpacing.sm(),
+                            DSBody(
                               translation('parentalConfig.goToSettings'),
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: theme.textSecondary,
-                              ),
                               textAlign: TextAlign.center,
+                              color: theme.textSecondary,
                             ),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
+                            const DSVerticalSpacing.xl2(),
+                            DSButton(
+                              text: translation('ui.goToSettingsCta'),
+                              icon: Icons.settings,
+                              primary: true,
                               onPressed: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (context) => const SettingsScreen()),
                                 );
                               },
-                              icon: const Icon(Icons.settings),
-                              label: Text(translation('ui.goToSettingsCta')),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              ),
                             ),
                           ],
                         ),

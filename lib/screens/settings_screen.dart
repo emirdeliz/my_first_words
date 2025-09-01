@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
+import '../providers/parental_config_provider.dart';
 import '../services/audio_service.dart';
 import '../design_system/design_system.dart';
 import 'parental_config_screen.dart';
@@ -40,7 +41,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _testTTS() async {
-    await _audioService.speak('Teste de configuração do TTS');
+                            final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+                        await _audioService.speak('Teste de configuração do TTS', languageCode);
   }
 
   @override
@@ -93,7 +95,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       groupValue: languageProvider.currentLanguageCode,
                       onChanged: (value) {
                         if (value != null) {
-                          languageProvider.setLanguage(value);
+                          languageProvider.setLanguage(value, (languageCode) {
+                            // Atualizar os itens de áudio quando o idioma muda
+                            final parentalProvider = context.read<ParentalConfigProvider>();
+                            parentalProvider.updateLanguage(languageCode);
+                          });
                           _audioService.setLanguage(value);
                         }
                       },
