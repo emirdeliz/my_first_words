@@ -1,4 +1,6 @@
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
@@ -12,15 +14,185 @@ class AudioService {
     if (_isInitialized) return;
 
     try {
+      // Web TTS availability depends on browser; offline generally not guaranteed
+      if (kIsWeb) {
+        await _flutterTts.setLanguage('pt-BR');
+        await _flutterTts.setSpeechRate(0.5);
+        await _flutterTts.setVolume(1.0);
+        await _flutterTts.setPitch(1.0);
+        _isInitialized = true;
+        print('✅ AudioService initialized for Web');
+        return;
+      }
       await _flutterTts.setLanguage('pt-BR');
       await _flutterTts.setSpeechRate(0.5);
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(1.0);
+      await _applyPreferredVoice();
       
       _isInitialized = true;
       print('✅ AudioService initialized successfully');
     } catch (e) {
       print('❌ Error initializing AudioService: $e');
+    }
+  }
+
+  bool _isVoiceOfflineCapable(Map<String, dynamic> v) {
+    final name = (v['name'] ?? '').toString().toLowerCase();
+    final engine = (v['engine'] ?? '').toString().toLowerCase();
+    final requiresNetwork = (
+      v['requiresNetwork'] ?? v['isNetworkConnectionRequired'] ?? v['networkConnectionRequired'] ?? false
+    );
+    final requiresNetworkBool = requiresNetwork is bool
+        ? requiresNetwork
+        : requiresNetwork.toString().toLowerCase() == 'true';
+    // Heuristics to avoid cloud/online-only voices
+    final looksCloud = name.contains('cloud') || name.contains('online') || name.contains('wavenet');
+    return !requiresNetworkBool && !looksCloud && !engine.contains('cloud');
+  }
+
+  Future<void> _applyPreferredVoice([String? specificProfile]) async {
+    try {
+      String voiceProfile = specificProfile ?? 'female';
+      
+      if (specificProfile == null) {
+        final prefs = await SharedPreferences.getInstance();
+        final profile = prefs.getString('parental_config') ?? '';
+        // We only need the voiceProfile string; read it safely
+        if (profile.isNotEmpty) {
+          // naive extraction to avoid json decode dependence here
+          // Prefer passing explicitly from provider in real apps
+          if (profile.contains('"voiceProfile":"male"')) voiceProfile = 'male';
+          if (profile.contains('"voiceProfile":"child"')) voiceProfile = 'child';
+        }
+      }
+
+      final voices = await getAvailableVoices();
+
+      Map<String, dynamic>? selected;
+      bool isPortuguese(Map<String, dynamic> v) {
+        final name = (v['name'] ?? '').toString().toLowerCase();
+        final locale = (v['locale'] ?? '').toString().toLowerCase();
+        final isPtBr = locale.contains('pt-br') || locale.contains('pt_br') || name.contains('pt-br') || name.contains('pt_br') || name.contains('brazil');
+        final isPtPt = locale.contains('pt-pt') || locale.contains('pt_pt') || name.contains('pt-pt') || name.contains('pt_pt') || name.contains('portugal');
+        return isPtBr && !isPtPt;
+      }
+
+      bool matchesGender(Map<String, dynamic> v, String gender) {
+        final name = (v['name'] ?? '').toString().toLowerCase();
+        final quality = (v['quality'] ?? '').toString().toLowerCase();
+        final genderField = (v['gender'] ?? '').toString().toLowerCase();
+        if (gender == 'male') {
+          return genderField.contains('male') || name.contains('male') || name.contains('masc') || name.contains('m1');
+        } else if (gender == 'female') {
+          return genderField.contains('female') || name.contains('female') || name.contains('fem') || name.contains('f1');
+        } else if (gender == 'child') {
+          return name.contains('child') || name.contains('kid') || name.contains('crianca') || name.contains('jovem') || quality.contains('enhanced');
+        }
+        return false;
+      }
+
+      // Filter pt-BR voices first
+      final List<Map<String, dynamic>> portugueseVoices = [];
+      for (final voice in voices) {
+        if (isPortuguese(voice)) {
+          portugueseVoices.add(voice);
+        }
+      }
+
+      if (portugueseVoices.isEmpty) {
+        print('⚠️ No Portuguese voices found, using default');
+        return;
+      }
+
+      // Prefer offline-capable voices
+      final offlineCandidates = <Map<String, dynamic>>[];
+      for (final v in portugueseVoices) {
+        if (_isVoiceOfflineCapable(v)) offlineCandidates.add(v);
+      }
+      final source = offlineCandidates.isNotEmpty ? offlineCandidates : portugueseVoices;
+
+      // Try to find a voice that matches the profile
+      Map<String, dynamic>? selectedVoice;
+      
+      if (voiceProfile == 'male') {
+        // Look for male characteristics
+        for (final voice in source) {
+          final name = (voice['name'] ?? '').toString().toLowerCase();
+          if (name.contains('masc') || name.contains('m1') || name.contains('male') || name.contains('homem')) {
+            selectedVoice = voice;
+            break;
+          }
+        }
+        selectedVoice ??= source.first;
+      } else if (voiceProfile == 'female') {
+        // Look for female characteristics
+        for (final voice in source) {
+          final name = (voice['name'] ?? '').toString().toLowerCase();
+          if (name.contains('fem') || name.contains('f1') || name.contains('female') || name.contains('mulher')) {
+            selectedVoice = voice;
+            break;
+          }
+        }
+        selectedVoice ??= source.first;
+      } else if (voiceProfile == 'child') {
+        // Look for child characteristics
+        for (final voice in source) {
+          final name = (voice['name'] ?? '').toString().toLowerCase();
+          if (name.contains('crianca') || name.contains('jovem') || name.contains('child') || name.contains('kid')) {
+            selectedVoice = voice;
+            break;
+          }
+        }
+        selectedVoice ??= source.first;
+      }
+
+      if (selectedVoice != null && selectedVoice.isNotEmpty) {
+        // Priorizar nomes contendo natural/neural ao aplicar
+        final candidates = <Map<String, dynamic>>[];
+        for (final v in source) {
+          final name = (v['name'] ?? '').toString().toLowerCase();
+          if (name.contains('neural') || name.contains('natural')) {
+            candidates.add(v);
+          }
+        }
+        final chosen = candidates.isNotEmpty ? candidates.first : selectedVoice;
+        final voiceName = chosen['name'];
+        final locale = chosen['locale'];
+        if (voiceName != null) {
+          await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
+          print('🗣️ Using $voiceProfile voice: $voiceName (${locale ?? 'unknown'})');
+        }
+      }
+    } catch (e) {
+      print('❌ Error applying preferred voice: $e');
+    }
+  }
+
+  Future<void> speakWithVoice(String text, String voiceProfile) async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    try {
+      await _applyPreferredVoice(voiceProfile);
+      await _flutterTts.speak(text);
+      print('🔊 Speaking with $voiceProfile voice: $text');
+    } catch (e) {
+      print('❌ Error speaking with voice: $e');
+    }
+  }
+
+  Future<void> setSpecificVoice(String voiceName, String locale) async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    try {
+      await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
+      print('🗣️ Set specific voice: $voiceName ($locale)');
+    } catch (e) {
+      print('❌ Error setting specific voice: $e');
     }
   }
 
@@ -85,7 +257,17 @@ class AudioService {
   Future<List<Map<String, dynamic>>> getAvailableVoices() async {
     try {
       final voices = await _flutterTts.getVoices;
-      return List<Map<String, dynamic>>.from(voices);
+      final List<Map<String, dynamic>> convertedVoices = [];
+      
+      if (voices is List) {
+        for (final voice in voices) {
+          if (voice is Map) {
+            convertedVoices.add(Map<String, dynamic>.from(voice));
+          }
+        }
+      }
+      
+      return convertedVoices;
     } catch (e) {
       print('❌ Error getting voices: $e');
       return [];

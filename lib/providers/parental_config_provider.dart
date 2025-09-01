@@ -13,6 +13,27 @@ class ParentalConfigProvider with ChangeNotifier {
 
   ParentalConfig get config => _config;
 
+  String get voiceProfile => _config.voiceProfile;
+  int get communicationLevel => _config.communicationLevel;
+
+  void setVoiceProfile(String profile) {
+    _config = _config.copyWith(
+      voiceProfile: profile,
+      lastUpdated: DateTime.now(),
+    );
+    notifyListeners();
+    _saveConfig();
+  }
+
+  void setCommunicationLevel(int level) {
+    _config = _config.copyWith(
+      communicationLevel: level,
+      lastUpdated: DateTime.now(),
+    );
+    notifyListeners();
+    _saveConfig();
+  }
+
   // Categorias disponíveis
   static const List<Map<String, dynamic>> categories = [
     {'id': 'basic', 'name': 'basicNeeds', 'icon': 'restaurant', 'color': 0xFF2563EB},
@@ -98,28 +119,34 @@ class ParentalConfigProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final configJson = prefs.getString('parental_config');
       
-      if (configJson != null) {
-        final configMap = json.decode(configJson);
-        _config = ParentalConfig.fromJson(configMap);
+      if (configJson != null && configJson.isNotEmpty) {
+        try {
+          final configMap = json.decode(configJson);
+          _config = ParentalConfig.fromJson(configMap);
+        } catch (e) {
+          // JSON inválido, usar configuração padrão
+          _config = _createDefaultConfig();
+        }
       } else {
         // Configuração padrão em português
-        _config = ParentalConfig(
-          enabledAudioItems: _createTranslatedAudioItems('pt-BR'),
-          isParentMode: false,
-          lastUpdated: DateTime.now(),
-        );
+        _config = _createDefaultConfig();
       }
       notifyListeners();
     } catch (e) {
-      print('❌ Erro ao carregar configuração parental: $e');
-      // Configuração padrão em caso de erro
-      _config = ParentalConfig(
-        enabledAudioItems: _createTranslatedAudioItems('pt-BR'),
-        isParentMode: false,
-        lastUpdated: DateTime.now(),
-      );
+      // Erro crítico, usar configuração padrão
+      _config = _createDefaultConfig();
       notifyListeners();
     }
+  }
+
+  ParentalConfig _createDefaultConfig() {
+    return ParentalConfig(
+      enabledAudioItems: _createTranslatedAudioItems('pt-BR'),
+      isParentMode: false,
+      lastUpdated: DateTime.now(),
+      voiceProfile: 'female',
+      communicationLevel: 1,
+    );
   }
 
   // Salvar configuração no armazenamento

@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: isActive ? 20 : 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
               );
@@ -123,9 +123,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
+                        color: color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: color.withOpacity(0.2)),
+                        border: Border.all(color: color.withValues(alpha: 0.2)),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(18),

@@ -35,6 +35,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _availableVoices = voices;
         _availableLanguages = languages;
+        // Garantir que o valor do dropdown seja válido
+        if (_availableVoices.isNotEmpty) {
+          final availableNames = _availableVoices
+              .map((v) => (v['name'] ?? 'default').toString())
+              .where((name) => name.isNotEmpty)
+              .toList();
+          if (availableNames.isNotEmpty && !availableNames.contains(_selectedVoice)) {
+            _selectedVoice = availableNames.first;
+          }
+        } else {
+          _selectedVoice = 'default';
+        }
       });
     } catch (e) {
       print('Error loading settings: $e');
@@ -182,10 +194,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_availableVoices.isNotEmpty)
                     ListTile(
                       title: const Text('Voz'),
-                      subtitle: Text(_selectedVoice),
+                      subtitle: Text(_selectedVoice.isEmpty ? 'default' : _selectedVoice),
                       leading: const Icon(Icons.record_voice_over),
                       trailing: DropdownButton<String>(
-                        value: _selectedVoice,
+                        value: _availableVoices
+                                .map((v) => (v['name'] ?? 'default').toString())
+                                .contains(_selectedVoice)
+                            ? _selectedVoice
+                            : (_availableVoices.isNotEmpty
+                                ? (_availableVoices.first['name'] ?? 'default').toString()
+                                : 'default'),
                         onChanged: (value) {
                           if (value != null) {
                             setState(() {

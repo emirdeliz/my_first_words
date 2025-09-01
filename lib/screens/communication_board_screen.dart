@@ -82,15 +82,6 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                           },
                           icon: Icon(Icons.settings, color: theme.textInverse),
                         ),
-                        IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const TTSTestScreen()),
-                            );
-                          },
-                          icon: Icon(Icons.volume_up, color: theme.textInverse),
-                        ),
                       ],
                     ),
                   ),
