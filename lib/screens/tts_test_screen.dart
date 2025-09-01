@@ -47,14 +47,25 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
 
     try {
       final languageCode = context.read<LanguageProvider>().currentLanguageCode;
-      await _audioService.speak('Teste básico do TTS', languageCode);
+      print('🔍 Testing TTS with language: $languageCode');
+      
+      // Teste simples primeiro
+      await _audioService.speak('Olá', languageCode);
+      await Future.delayed(Duration(seconds: 2));
+      
+      // Teste em inglês se não for português
+      if (languageCode != 'pt-BR') {
+        await _audioService.speak('Hello', 'en');
+      }
+      
       setState(() {
-        _status = 'Teste concluído!';
+        _status = 'Teste concluído! Verifique o console para logs.';
       });
     } catch (e) {
       setState(() {
         _status = 'Erro no teste: $e';
       });
+      print('❌ TTS Test Error: $e');
     } finally {
       setState(() {
         _isSpeaking = false;
@@ -149,6 +160,63 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
     }
   }
 
+  Future<void> _checkTTSStatus() async {
+    setState(() {
+      _status = 'Verificando status...';
+    });
+
+    try {
+      final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+      final voices = await _audioService.getAvailableVoices();
+      final languages = await _audioService.getAvailableLanguages();
+      
+      print('🔍 TTS Status Check:');
+      print('🌍 Current Language: $languageCode');
+      print('🎤 Available Voices: ${voices.length}');
+      print('🌍 Available Languages: ${languages.length}');
+      
+      if (voices.isNotEmpty) {
+        print('🎤 First Voice: ${voices.first}');
+      }
+      
+      setState(() {
+        _status = 'Status verificado! Verifique o console.';
+      });
+    } catch (e) {
+      setState(() {
+        _status = 'Erro ao verificar status: $e';
+      });
+      print('❌ Status Check Error: $e');
+    }
+  }
+
+  Future<void> _checkDeviceTTS() async {
+    setState(() {
+      _status = 'Verificando TTS do dispositivo...';
+    });
+
+    try {
+      final isAvailable = await _audioService.isTTSAvailable();
+      
+      if (isAvailable) {
+        setState(() {
+          _status = '✅ TTS disponível no dispositivo!';
+        });
+        print('✅ Device TTS is available');
+      } else {
+        setState(() {
+          _status = '❌ TTS não disponível no dispositivo';
+        });
+        print('❌ Device TTS is not available');
+      }
+    } catch (e) {
+      setState(() {
+        _status = 'Erro ao verificar TTS: $e';
+      });
+      print('❌ Device TTS Check Error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -193,6 +261,26 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
               primary: true,
               large: true,
               onPressed: _isSpeaking ? null : _testBasicTTS,
+            ),
+
+            const DSVerticalSpacing.md(),
+
+            DSButton(
+              text: 'Verificar Status TTS',
+              icon: Icons.info,
+              primary: false,
+              large: true,
+              onPressed: _checkTTSStatus,
+            ),
+
+            const DSVerticalSpacing.md(),
+
+            DSButton(
+              text: 'Verificar TTS do Dispositivo',
+              icon: Icons.phone_android,
+              primary: false,
+              large: true,
+              onPressed: _checkDeviceTTS,
             ),
 
             const DSVerticalSpacing.md(),

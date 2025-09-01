@@ -5,10 +5,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AudioService {
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
-  AudioService._internal();
-
+  
   final FlutterTts _flutterTts = FlutterTts();
   bool _isInitialized = false;
+
+  AudioService._internal() {
+    _setupTTSCallbacks();
+  }
+
+  void _setupTTSCallbacks() {
+    _flutterTts.setStartHandler(() {
+      print('🎯 TTS started speaking');
+    });
+
+    _flutterTts.setCompletionHandler(() {
+      print('✅ TTS completed speaking');
+    });
+
+    _flutterTts.setErrorHandler((msg) {
+      print('❌ TTS error: $msg');
+    });
+
+    _flutterTts.setCancelHandler(() {
+      print('⏹️ TTS cancelled');
+    });
+  }
 
   Future<void> initialize([String? languageCode]) async {
     if (_isInitialized) return;
@@ -26,16 +47,58 @@ class AudioService {
         print('✅ AudioService initialized for Web with language: $language');
         return;
       }
-      await _flutterTts.setLanguage(language);
+
+      print('🔄 Initializing TTS for language: $language');
+      
+      // Verificar se o TTS está disponível no dispositivo
+      try {
+        final ttsStatus = await _flutterTts.isLanguageAvailable('en');
+        print('🔍 TTS Engine Status: $ttsStatus');
+      } catch (e) {
+        print('⚠️ TTS Engine check failed: $e');
+      }
+      
+      // Verificar se o idioma está disponível
+      final isAvailable = await _flutterTts.isLanguageAvailable(language);
+      print('🌍 Language available: $isAvailable');
+      
+      if (!isAvailable) {
+        print('⚠️ Language $language not available, trying fallback...');
+        // Tentar idioma base (pt, en, es, de)
+        final baseLanguage = language.split('-')[0];
+        final fallbackAvailable = await _flutterTts.isLanguageAvailable(baseLanguage);
+        if (fallbackAvailable) {
+          print('✅ Using fallback language: $baseLanguage');
+          await _flutterTts.setLanguage(baseLanguage);
+        } else {
+          print('⚠️ Fallback language also not available, using default');
+          // Tentar inglês como último recurso
+          try {
+            await _flutterTts.setLanguage('en');
+            print('✅ Using English as fallback');
+          } catch (e) {
+            print('❌ Even English fallback failed: $e');
+          }
+        }
+      } else {
+        await _flutterTts.setLanguage(language);
+      }
+      
       await _flutterTts.setSpeechRate(0.5);
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(1.0);
+      
+      // Verificar configurações aplicadas
+      print('✅ TTS configured successfully');
+      
       await _applyPreferredVoice(language);
       
       _isInitialized = true;
       print('✅ AudioService initialized successfully with language: $language');
     } catch (e) {
       print('❌ Error initializing AudioService: $e');
+      print('❌ Error details: ${e.toString()}');
+      _isInitialized = false;
     }
   }
 
@@ -215,18 +278,37 @@ class AudioService {
   }
 
   Future<void> speak(String text, [String? languageCode]) async {
-    if (!_isInitialized) {
-      await initialize(languageCode);
-    } else if (languageCode != null) {
-      // If already initialized but language changed, update it
-      await setLanguage(languageCode);
-    }
-
     try {
+      if (!_isInitialized) {
+        print('🔄 TTS not initialized, initializing now...');
+        await initialize(languageCode);
+      } else if (languageCode != null) {
+        // If already initialized but language changed, update it
+        print('🔄 Language changed, updating TTS...');
+        await setLanguage(languageCode);
+      }
+
+      // Verificar se o TTS está funcionando
+      final isAvailable = await _flutterTts.isLanguageAvailable(languageCode ?? 'pt-BR');
+      print('🌍 Language available: $isAvailable');
+      
+      // Verificar configurações do TTS
+      print('🔊 TTS Status check completed');
+      
       await _flutterTts.speak(text);
       print('🔊 Speaking: $text');
     } catch (e) {
       print('❌ Error speaking: $e');
+      print('❌ Error details: ${e.toString()}');
+      // Tentar reinicializar em caso de erro
+      _isInitialized = false;
+      await initialize(languageCode);
+      try {
+        await _flutterTts.speak(text);
+        print('🔊 Speaking after reinitialization: $text');
+      } catch (e2) {
+        print('❌ Error after reinitialization: $e2');
+      }
     }
   }
 
@@ -277,31 +359,81 @@ class AudioService {
 
   Future<List<Map<String, dynamic>>> getAvailableVoices() async {
     try {
+      print('🔄 Getting available voices from TTS...');
       final voices = await _flutterTts.getVoices;
+      print('🎤 Raw voices response: $voices');
+      
       final List<Map<String, dynamic>> convertedVoices = [];
       
       if (voices is List) {
+        print('✅ Voices is a List with ${voices.length} items');
         for (final voice in voices) {
           if (voice is Map) {
             convertedVoices.add(Map<String, dynamic>.from(voice));
+          } else {
+            print('⚠️ Voice item is not a Map: ${voice.runtimeType} - $voice');
           }
         }
+      } else {
+        print('⚠️ Voices is not a List: ${voices.runtimeType}');
+      }
+      
+      print('🎤 Converted ${convertedVoices.length} voices');
+      if (convertedVoices.isNotEmpty) {
+        print('🎤 Sample voice: ${convertedVoices.first}');
       }
       
       return convertedVoices;
     } catch (e) {
       print('❌ Error getting voices: $e');
+      print('❌ Error details: ${e.toString()}');
       return [];
     }
   }
 
   Future<List<String>> getAvailableLanguages() async {
     try {
+      print('🔄 Getting available languages from TTS...');
       final languages = await _flutterTts.getLanguages;
-      return List<String>.from(languages);
+      print('🌍 Raw languages response: $languages');
+      
+      final List<String> convertedLanguages = [];
+      
+      if (languages is List) {
+        print('✅ Languages is a List with ${languages.length} items');
+        for (final language in languages) {
+          if (language is String) {
+            convertedLanguages.add(language);
+          } else {
+            print('⚠️ Language item is not a String: ${language.runtimeType} - $language');
+          }
+        }
+      } else {
+        print('⚠️ Languages is not a List: ${languages.runtimeType}');
+      }
+      
+      print('🌍 Converted ${convertedLanguages.length} languages');
+      if (convertedLanguages.isNotEmpty) {
+        print('🌍 Sample language: ${convertedLanguages.first}');
+      }
+      
+      return convertedLanguages;
     } catch (e) {
       print('❌ Error getting languages: $e');
+      print('❌ Error details: ${e.toString()}');
       return [];
+    }
+  }
+
+  Future<bool> isTTSAvailable() async {
+    try {
+      // Verificar se o TTS está funcionando
+      final hasLanguage = await _flutterTts.isLanguageAvailable('en');
+      print('🔍 TTS Availability Check: $hasLanguage');
+      return hasLanguage;
+    } catch (e) {
+      print('❌ TTS Availability Check Failed: $e');
+      return false;
     }
   }
 
@@ -309,3 +441,5 @@ class AudioService {
     _flutterTts.stop();
   }
 }
+
+

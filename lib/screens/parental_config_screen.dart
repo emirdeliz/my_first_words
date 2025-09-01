@@ -588,8 +588,25 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
 
   Future<void> _loadVoices() async {
     try {
+      print('🔄 Loading voices...');
       await _audioService.initialize();
       final voices = await _audioService.getAvailableVoices();
+      
+      print('🎤 Total voices found: ${voices.length}');
+      if (voices.isNotEmpty) {
+        print('🎤 First voice: ${voices.first}');
+      }
+      
+      // Se não houver vozes, mostrar todas as vozes disponíveis
+      if (voices.isEmpty) {
+        print('⚠️ No voices found, showing empty list');
+        setState(() {
+          _availableVoices = [];
+          _isLoading = false;
+        });
+        return;
+      }
+      
       // Filtrar para vozes brasileiras (pt-BR) e naturais, excluindo pt-PT
       final List<Map<String, dynamic>> filtered = [];
       for (final v in voices) {
@@ -603,6 +620,9 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
           filtered.add(v);
         }
       }
+      
+      print('🎤 Natural pt-BR voices found: ${filtered.length}');
+      
       // Priorizar vozes com nomes contendo "natural" ou "neural"
       int priorityScore(Map<String, dynamic> v) {
         final name = (v['name'] ?? '').toString().toLowerCase();
@@ -611,9 +631,11 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
         if (name.contains('natural')) score += 2;
         return score;
       }
+      
       // Se não houver vozes naturais pt-BR, fallback para todas as vozes pt-BR
       List<Map<String, dynamic>> fallbackFiltered = [];
       if (filtered.isEmpty) {
+        print('⚠️ No natural pt-BR voices, trying fallback...');
         for (final v in voices) {
           final name = (v['name'] ?? '').toString().toLowerCase();
           final locale = (v['locale'] ?? '').toString().toLowerCase();
@@ -624,16 +646,34 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
             fallbackFiltered.add(v);
           }
         }
+        print('🎤 Fallback pt-BR voices found: ${fallbackFiltered.length}');
       }
       
-      final listToUse = filtered.isNotEmpty ? filtered : (fallbackFiltered.isNotEmpty ? fallbackFiltered : voices);
+      // Se ainda não houver vozes pt-BR, mostrar todas as vozes disponíveis
+      List<Map<String, dynamic>> listToUse;
+      if (filtered.isNotEmpty) {
+        listToUse = filtered;
+        print('✅ Using natural pt-BR voices');
+      } else if (fallbackFiltered.isNotEmpty) {
+        listToUse = fallbackFiltered;
+        print('✅ Using fallback pt-BR voices');
+      } else {
+        listToUse = voices;
+        print('⚠️ No pt-BR voices found, showing all available voices');
+      }
+      
       listToUse.sort((a, b) => priorityScore(b).compareTo(priorityScore(a)));
+      
+      print('🎤 Final voice list: ${listToUse.length} voices');
+      
       setState(() {
         _availableVoices = listToUse;
         _isLoading = false;
       });
     } catch (e) {
+      print('❌ Error loading voices: $e');
       setState(() {
+        _availableVoices = [];
         _isLoading = false;
       });
     }
