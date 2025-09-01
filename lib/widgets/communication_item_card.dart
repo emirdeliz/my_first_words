@@ -187,12 +187,12 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
   Widget _buildImageOrIcon(String imageName, Color color) {
     return Image.asset(
       'assets/images/fun/$imageName.png',
-      width: 48,
-      height: 48,
+      width: 100,
+      height: 100,
       errorBuilder: (context, error, stackTrace) {
         return Container(
-          width: 48,
-          height: 48,
+          width: 100,
+          height: 100,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
@@ -211,8 +211,6 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
       },
     );
   }
-  
-
   
   String _getImageName(String iconName, String type) {
     // Mapeamento de ícones para nomes de imagem divertidos
