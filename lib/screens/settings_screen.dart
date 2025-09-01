@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import '../services/audio_service.dart';
+import '../design_system/design_system.dart';
 import 'parental_config_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -48,13 +49,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, themeProvider, languageProvider, child) {
         final translation = languageProvider.getTranslation;
         return Scaffold(
-          appBar: AppBar(
-            title: Text(translation('ui.settings')),
+          appBar: DSHeader(
+            title: translation('ui.settings'),
             backgroundColor: Theme.of(context).colorScheme.primary,
             foregroundColor: Colors.white,
           ),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignTokens.spaceLG),
             children: [
               // Tema
               _buildSection(
@@ -62,21 +63,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.palette,
                 children: [
                   SwitchListTile(
-                    title: Text(translation('ui.darkMode')),
-                    subtitle: Text(translation('ui.enableDarkMode')),
+                    title: DSSubtitle(translation('ui.darkMode')),
+                    subtitle: DSBody(translation('ui.enableDarkMode'), small: true),
                     value: themeProvider.isDarkMode,
                     onChanged: (value) {
                       themeProvider.setTheme(value);
                     },
-                    secondary: Icon(
+                    secondary: DSIcon(
                       themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
                       color: Theme.of(context).colorScheme.primary,
+                      icon3: true,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const DSVerticalSpacing.xl2(),
 
               // Idioma
               _buildSection(
@@ -103,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const DSVerticalSpacing.xl2(),
 
               // Configurações de TTS
               _buildSection(
@@ -192,17 +194,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const DSVerticalSpacing.xl2(),
 
               // Configuração Parental
               _buildSection(
                 title: translation('ui.parentalConfig'),
                 icon: Icons.family_restroom,
                 children: [
-                  ListTile(
-                    title: Text(translation('ui.configureAudios')),
-                    subtitle: Text(translation('ui.configureAudiosDesc')),
-                    trailing: const Icon(Icons.arrow_forward_ios),
+                  DSListItem(
+                    title: translation('ui.configureAudios'),
+                    subtitle: translation('ui.configureAudiosDesc'),
+                    trailing: const DSIcon(Icons.arrow_forward_ios, icon2: true),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -215,7 +217,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const DSVerticalSpacing.xl2(),
 
               // Informações do app
               _buildSection(
@@ -251,29 +253,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required List<Widget> children,
   }) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
+    return DSCard(
+      elev2: true,
+      sp4: true,
+      br3: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              DSIcon(icon, color: Theme.of(context).colorScheme.primary, icon3: true),
+              const DSHorizontalSpacing.md(),
+              DSTitle(title),
+            ],
+          ),
+          const DSVerticalSpacing.lg(),
+          ...children,
+        ],
       ),
     );
   }
