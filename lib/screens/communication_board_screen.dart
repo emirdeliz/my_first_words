@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/communication_item.dart';
 import '../models/parental_config_model.dart';
@@ -49,17 +50,27 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
         final theme = themeProvider.currentTheme;
         final appTitle = languageProvider.getTranslation('appTitle');
         final enabledItems = parentalProvider.getEnabledItems();
+        final statusBarHeight = MediaQuery.of(context).padding.top;
+
+        // Configurar status bar com ícones brancos
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light, // Ícones brancos
+            statusBarBrightness: Brightness.dark, // Para iOS
+          ),
+        );
 
         return Scaffold(
           backgroundColor: theme.background,
-          body: SafeArea(
+          body: SafeArea(top: false,
             child: Column(
               children: [
                 // Header com cor sólida (tons pastéis preferidos)
                 Container(
                   color: theme.primary.withValues(alpha: 0.9),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: EdgeInsets.fromLTRB(20, 16 + statusBarHeight, 20, 16),
                     child: Row(
                       children: [
                         // Microphone icon removed as requested

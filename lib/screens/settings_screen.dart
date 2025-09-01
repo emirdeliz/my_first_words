@@ -17,8 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _speechRate = 0.5;
   double _volume = 1.0;
   double _pitch = 1.0;
-  String _selectedVoice = 'default';
-  List<Map<String, dynamic>> _availableVoices = [];
+
   List<String> _availableLanguages = [];
 
   @override
@@ -29,24 +28,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     try {
-      final voices = await _audioService.getAvailableVoices();
       final languages = await _audioService.getAvailableLanguages();
       
       setState(() {
-        _availableVoices = voices;
         _availableLanguages = languages;
-        // Garantir que o valor do dropdown seja válido
-        if (_availableVoices.isNotEmpty) {
-          final availableNames = _availableVoices
-              .map((v) => (v['name'] ?? 'default').toString())
-              .where((name) => name.isNotEmpty)
-              .toList();
-          if (availableNames.isNotEmpty && !availableNames.contains(_selectedVoice)) {
-            _selectedVoice = availableNames.first;
-          }
-        } else {
-          _selectedVoice = 'default';
-        }
       });
     } catch (e) {
       print('Error loading settings: $e');
@@ -190,35 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
 
-                  // Voz
-                  if (_availableVoices.isNotEmpty)
-                    ListTile(
-                      title: const Text('Voz'),
-                      subtitle: Text(_selectedVoice.isEmpty ? 'default' : _selectedVoice),
-                      leading: const Icon(Icons.record_voice_over),
-                      trailing: DropdownButton<String>(
-                        value: _availableVoices
-                                .map((v) => (v['name'] ?? 'default').toString())
-                                .contains(_selectedVoice)
-                            ? _selectedVoice
-                            : (_availableVoices.isNotEmpty
-                                ? (_availableVoices.first['name'] ?? 'default').toString()
-                                : 'default'),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              _selectedVoice = value;
-                            });
-                          }
-                        },
-                        items: _availableVoices.map((voice) {
-                          return DropdownMenuItem<String>(
-                            value: voice['name'] ?? 'default',
-                            child: Text(voice['name'] ?? 'default'),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+
 
                   // Teste de TTS
                   ListTile(

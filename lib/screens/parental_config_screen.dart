@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/parental_config_provider.dart';
 import '../providers/language_provider.dart';
+import '../models/language_model.dart';
 
 import '../services/audio_service.dart';
 
@@ -603,14 +604,16 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
     try {
       await _audioService.initialize();
       final voices = await _audioService.getAvailableVoices();
-      // Filtrar para vozes brasileiras (pt-BR), excluindo pt-PT
+      // Filtrar para vozes brasileiras (pt-BR) e naturais, excluindo pt-PT
       final List<Map<String, dynamic>> filtered = [];
       for (final v in voices) {
         final name = (v['name'] ?? '').toString().toLowerCase();
         final locale = (v['locale'] ?? '').toString().toLowerCase();
         final isPtBr = locale.contains('pt-br') || locale.contains('pt_br') || name.contains('pt-br') || name.contains('pt_br') || name.contains('brazil');
         final isPtPt = locale.contains('pt-pt') || locale.contains('pt_pt') || name.contains('pt-pt') || name.contains('pt_pt') || name.contains('portugal');
-        if (isPtBr && !isPtPt) {
+        final isNatural = name.contains('neural') || name.contains('natural');
+        
+        if (isPtBr && !isPtPt && isNatural) {
           filtered.add(v);
         }
       }
@@ -622,7 +625,22 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
         if (name.contains('natural')) score += 2;
         return score;
       }
-      final listToUse = filtered.isNotEmpty ? filtered : voices;
+      // Se não houver vozes naturais pt-BR, fallback para todas as vozes pt-BR
+      List<Map<String, dynamic>> fallbackFiltered = [];
+      if (filtered.isEmpty) {
+        for (final v in voices) {
+          final name = (v['name'] ?? '').toString().toLowerCase();
+          final locale = (v['locale'] ?? '').toString().toLowerCase();
+          final isPtBr = locale.contains('pt-br') || locale.contains('pt_br') || name.contains('pt-br') || name.contains('pt_br') || name.contains('brazil');
+          final isPtPt = locale.contains('pt-pt') || locale.contains('pt_pt') || name.contains('pt-pt') || name.contains('pt_pt') || name.contains('portugal');
+          
+          if (isPtBr && !isPtPt) {
+            fallbackFiltered.add(v);
+          }
+        }
+      }
+      
+      final listToUse = filtered.isNotEmpty ? filtered : (fallbackFiltered.isNotEmpty ? fallbackFiltered : voices);
       listToUse.sort((a, b) => priorityScore(b).compareTo(priorityScore(a)));
       setState(() {
         _availableVoices = listToUse;
