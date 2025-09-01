@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/communication_item.dart';
 import '../models/theme_model.dart';
+import '../providers/language_provider.dart';
 
 class CommunicationItemCard extends StatefulWidget {
   final CommunicationItem item;
   final AppTheme theme;
   final VoidCallback onTap;
+  final LanguageProvider languageProvider;
 
   const CommunicationItemCard({
     super.key,
     required this.item,
     required this.theme,
     required this.onTap,
+    required this.languageProvider,
   });
 
   @override
@@ -113,8 +117,8 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                           alignment: Alignment.center,
                           children: [
                             Container(
-                              width: 64,
-                              height: 64,
+                              width: 60,
+                              height: 60,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: _pastelVariant(
@@ -144,7 +148,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                         Text(
                           widget.item.text,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: widget.theme.text,
                           ),
@@ -167,7 +171,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                           child: Text(
                             _getCategoryDisplayName(widget.item.type),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: widget.theme.getItemColor(widget.item.type),
                             ),
@@ -188,13 +192,13 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
   String _getCategoryDisplayName(String type) {
     switch (type) {
       case 'basic':
-        return 'Necessidades';
+        return widget.languageProvider.getTranslation('categories.basicNeeds');
       case 'emotions':
-        return 'Emoções';
+        return widget.languageProvider.getTranslation('categories.emotions');
       case 'activities':
-        return 'Atividades';
+        return widget.languageProvider.getTranslation('categories.activities');
       case 'social':
-        return 'Social';
+        return widget.languageProvider.getTranslation('categories.social');
       default:
         return type;
     }

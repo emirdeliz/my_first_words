@@ -98,6 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           languageProvider.setLanguage(value, (languageCode) {
                             // Atualizar os itens de áudio quando o idioma muda
                             final parentalProvider = context.read<ParentalConfigProvider>();
+                            parentalProvider.setCurrentLanguageCode(languageCode);
                             parentalProvider.updateLanguage(languageCode);
                           });
                           _audioService.setLanguage(value);
@@ -237,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ListTile(
                     title: Text(translation('ui.developer')),
-                    subtitle: const Text('My First Words Team'),
+                    subtitle: const Text('Emir Marques de Liz with love for his son Miguel ❤️'),
                     leading: const Icon(Icons.developer_mode),
                   ),
                   ListTile(

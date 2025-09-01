@@ -127,6 +127,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                           ),
                           theme: theme,
                           onTap: () => _handleItemTap(item),
+                          languageProvider: languageProvider,
                         );
                       },
                     ),

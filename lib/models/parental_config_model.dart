@@ -51,12 +51,12 @@ class AudioItem {
 
   factory AudioItem.fromJson(Map<String, dynamic> json) {
     return AudioItem(
-      id: json['id'],
-      categoryId: json['categoryId'],
-      textKey: json['textKey'],
-      text: json['text'],
-      icon: json['icon'],
-      type: json['type'],
+      id: json['id'] ?? '',
+      categoryId: json['categoryId'] ?? '',
+      textKey: json['textKey'] ?? '',
+      text: json['text']?.toString() ?? '', // Garantir que seja string
+      icon: json['icon'] ?? '',
+      type: json['type'] ?? '',
       isEnabled: json['isEnabled'] ?? true,
     );
   }

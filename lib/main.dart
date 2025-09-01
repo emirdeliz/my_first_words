@@ -64,6 +64,15 @@ class _RootDeciderState extends State<_RootDecider> {
   Future<void> _loadFlag() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getBool('onboarding_complete') ?? false;
+    
+    // Carregar idioma salvo
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    await languageProvider.loadSavedLanguage();
+    
+    // Carregar tema salvo
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    await themeProvider.loadSavedTheme();
+    
     if (!mounted) return;
     setState(() => _onboardingComplete = value);
   }

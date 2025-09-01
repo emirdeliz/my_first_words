@@ -26,12 +26,51 @@ class ParentalConfigProvider with ChangeNotifier {
   }
 
   void setCommunicationLevel(int level) {
+    // Criar um mapa do estado atual de habilitação dos itens
+    final Map<String, bool> enabledState = {};
+    for (final item in _config.enabledAudioItems) {
+      enabledState[item.id] = item.isEnabled;
+    }
+    
     _config = _config.copyWith(
       communicationLevel: level,
       lastUpdated: DateTime.now(),
     );
+    
+    // Recriar os itens com o novo nível de comunicação
+    final currentLanguageCode = _getCurrentLanguageCode();
+    final newItems = _createTranslatedAudioItems(currentLanguageCode);
+    
+    // Aplicar o estado de habilitação preservado
+    final updatedItems = newItems.map((newItem) {
+      final wasEnabled = enabledState[newItem.id] ?? true; // Padrão: habilitado
+      return newItem.copyWith(isEnabled: wasEnabled);
+    }).toList();
+
+    _config = _config.copyWith(
+      enabledAudioItems: updatedItems,
+      lastUpdated: DateTime.now(),
+    );
+    
     notifyListeners();
     _saveConfig();
+  }
+  
+  // Método auxiliar para obter o código do idioma atual
+  String _getCurrentLanguageCode() {
+    return _currentLanguageCode;
+  }
+  
+  // Limpar configuração salva (para debug)
+  Future<void> clearSavedConfig() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('parental_config');
+      _config = _createDefaultConfig();
+      notifyListeners();
+    } catch (e) {
+      print('❌ Erro ao limpar configuração: $e');
+    }
   }
 
   // Categorias disponíveis
@@ -89,16 +128,25 @@ class ParentalConfigProvider with ChangeNotifier {
 
     return defaultAudioItemsConfig.map((item) {
       String translatedText = '';
+      final levelKey = '${item['textKey']}_level${_config.communicationLevel}';
       
-      // Obter texto traduzido baseado na categoria e textKey
+      // Obter texto traduzido baseado na categoria e textKey com nível
       if (item['categoryId'] == 'basic') {
-        translatedText = language.translations['basicNeeds']?[item['textKey']] ?? item['textKey'];
+        translatedText = language.translations['basicNeeds']?[levelKey] ?? 
+                        language.translations['basicNeeds']?[item['textKey']] ?? 
+                        item['textKey'];
       } else if (item['categoryId'] == 'emotions') {
-        translatedText = language.translations['emotions']?[item['textKey']] ?? item['textKey'];
+        translatedText = language.translations['emotions']?[levelKey] ?? 
+                        language.translations['emotions']?[item['textKey']] ?? 
+                        item['textKey'];
       } else if (item['categoryId'] == 'activities') {
-        translatedText = language.translations['activities']?[item['textKey']] ?? item['textKey'];
+        translatedText = language.translations['activities']?[levelKey] ?? 
+                        language.translations['activities']?[item['textKey']] ?? 
+                        item['textKey'];
       } else if (item['categoryId'] == 'social') {
-        translatedText = language.translations['social']?[item['textKey']] ?? item['textKey'];
+        translatedText = language.translations['social']?[levelKey] ?? 
+                        language.translations['social']?[item['textKey']] ?? 
+                        item['textKey'];
       }
       
       return AudioItem(
@@ -123,6 +171,36 @@ class ParentalConfigProvider with ChangeNotifier {
         try {
           final configMap = json.decode(configJson);
           _config = ParentalConfig.fromJson(configMap);
+          
+          // Recriar textos traduzidos com o idioma e nível atuais
+          final updatedItems = _config.enabledAudioItems.map((item) {
+            final levelKey = '${item.textKey}_level${_config.communicationLevel}';
+            final language = LanguageModel.supportedLanguages[_currentLanguageCode] ?? 
+                           LanguageModel.supportedLanguages['pt-BR']!;
+            
+            String translatedText = '';
+            if (item.categoryId == 'basic') {
+              translatedText = language.translations['basicNeeds']?[levelKey] ?? 
+                              language.translations['basicNeeds']?[item.textKey] ?? 
+                              item.textKey;
+            } else if (item.categoryId == 'emotions') {
+              translatedText = language.translations['emotions']?[levelKey] ?? 
+                              language.translations['emotions']?[item.textKey] ?? 
+                              item.textKey;
+            } else if (item.categoryId == 'activities') {
+              translatedText = language.translations['activities']?[levelKey] ?? 
+                              language.translations['activities']?[item.textKey] ?? 
+                              item.textKey;
+            } else if (item.categoryId == 'social') {
+              translatedText = language.translations['social']?[levelKey] ?? 
+                              language.translations['social']?[item.textKey] ?? 
+                              item.textKey;
+            }
+            
+            return item.copyWith(text: translatedText);
+          }).toList();
+          
+          _config = _config.copyWith(enabledAudioItems: updatedItems);
         } catch (e) {
           // JSON inválido, usar configuração padrão
           _config = _createDefaultConfig();
@@ -153,7 +231,29 @@ class ParentalConfigProvider with ChangeNotifier {
   Future<void> _saveConfig() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final configJson = json.encode(_config.toJson());
+      
+      // Garantir que os textos sejam strings simples antes de salvar
+      final itemsToSave = _config.enabledAudioItems.map((item) => {
+        'id': item.id,
+        'categoryId': item.categoryId,
+        'textKey': item.textKey,
+        'text': item.text.toString(), // Garantir que seja string
+        'icon': item.icon,
+        'type': item.type,
+        'isEnabled': item.isEnabled,
+      }).toList();
+      
+      final configToSave = {
+        'enabledAudioItems': itemsToSave,
+        'isParentMode': _config.isParentMode,
+        'lastUpdated': _config.lastUpdated.toIso8601String(),
+        'voiceProfile': _config.voiceProfile,
+        'selectedVoiceName': _config.selectedVoiceName,
+        'selectedVoiceLocale': _config.selectedVoiceLocale,
+        'communicationLevel': _config.communicationLevel,
+      };
+      
+      final configJson = json.encode(configToSave);
       await prefs.setString('parental_config', configJson);
     } catch (e) {
       print('❌ Erro ao salvar configuração parental: $e');
@@ -261,15 +361,19 @@ class ParentalConfigProvider with ChangeNotifier {
 
   // Atualizar idioma
   void updateLanguage(String languageCode) {
+    // Criar um mapa do estado atual de habilitação dos itens
+    final Map<String, bool> enabledState = {};
+    for (final item in _config.enabledAudioItems) {
+      enabledState[item.id] = item.isEnabled;
+    }
+    
+    // Criar novos itens com o idioma atualizado
     final newItems = _createTranslatedAudioItems(languageCode);
     
-    // Manter o estado de habilitação dos itens existentes
+    // Aplicar o estado de habilitação preservado
     final updatedItems = newItems.map((newItem) {
-      final existingItem = _config.enabledAudioItems.firstWhere(
-        (item) => item.id == newItem.id,
-        orElse: () => newItem,
-      );
-      return newItem.copyWith(isEnabled: existingItem.isEnabled);
+      final wasEnabled = enabledState[newItem.id] ?? true; // Padrão: habilitado
+      return newItem.copyWith(isEnabled: wasEnabled);
     }).toList();
 
     _config = _config.copyWith(
@@ -279,6 +383,13 @@ class ParentalConfigProvider with ChangeNotifier {
     notifyListeners();
     _saveConfig();
   }
+  
+  // Método para obter o idioma atual do LanguageProvider
+  void setCurrentLanguageCode(String languageCode) {
+    _currentLanguageCode = languageCode;
+  }
+  
+  String _currentLanguageCode = 'pt-BR';
 
   // Obter estatísticas de uma categoria
   String getCategoryStats(String categoryId) {
