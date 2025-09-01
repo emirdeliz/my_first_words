@@ -51,6 +51,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
         final appTitle = languageProvider.getTranslation('appTitle');
         final enabledItems = parentalProvider.getEnabledItems();
         final statusBarHeight = MediaQuery.of(context).padding.top;
+        final translation = languageProvider.getTranslation;
 
         // Configurar status bar com ícones brancos
         SystemChrome.setSystemUIOverlayStyle(
@@ -144,7 +145,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Nenhum áudio configurado',
+                              translation('parentalConfig.noAudioConfigured'),
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -152,7 +153,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Vá para as configurações - Configuração Parental para ativar alguns áudios.',
+                              translation('parentalConfig.goToSettings'),
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -167,7 +168,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                                 );
                               },
                               icon: const Icon(Icons.settings),
-                              label: const Text('Ir para Configurações'),
+                              label: Text(translation('ui.goToSettingsCta')),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               ),

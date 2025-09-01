@@ -44,25 +44,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configurações'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Consumer2<ThemeProvider, LanguageProvider>(
-        builder: (context, themeProvider, languageProvider, child) {
-          return ListView(
+    return Consumer2<ThemeProvider, LanguageProvider>(
+      builder: (context, themeProvider, languageProvider, child) {
+        final translation = languageProvider.getTranslation;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(translation('ui.settings')),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Colors.white,
+          ),
+          body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               // Tema
               _buildSection(
-                title: 'Aparência',
+                title: translation('ui.appearance'),
                 icon: Icons.palette,
                 children: [
                   SwitchListTile(
-                    title: const Text('Modo escuro'),
-                    subtitle: const Text('Ativar tema escuro'),
+                    title: Text(translation('ui.darkMode')),
+                    subtitle: Text(translation('ui.enableDarkMode')),
                     value: themeProvider.isDarkMode,
                     onChanged: (value) {
                       themeProvider.setTheme(value);
@@ -79,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // Idioma
               _buildSection(
-                title: 'Idioma',
+                title: translation('ui.language'),
                 icon: Icons.language,
                 children: [
                   for (final language in languageProvider.supportedLanguages)
@@ -106,12 +107,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // Configurações de TTS
               _buildSection(
-                title: 'Configurações de Áudio',
+                title: translation('ui.audioSettings'),
                 icon: Icons.volume_up,
                 children: [
                   // Taxa de fala
                   ListTile(
-                    title: const Text('Velocidade da fala'),
+                    title: Text(translation('ui.speechRate')),
                     subtitle: Text('${(_speechRate * 100).round()}%'),
                     leading: const Icon(Icons.speed),
                     trailing: SizedBox(
@@ -133,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   // Volume
                   ListTile(
-                    title: const Text('Volume'),
+                    title: Text(translation('ui.volume')),
                     subtitle: Text('${(_volume * 100).round()}%'),
                     leading: const Icon(Icons.volume_up),
                     trailing: SizedBox(
@@ -155,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   // Pitch
                   ListTile(
-                    title: const Text('Tom da voz'),
+                    title: Text(translation('ui.pitch')),
                     subtitle: Text('${(_pitch * 100).round()}%'),
                     leading: const Icon(Icons.music_note),
                     trailing: SizedBox(
@@ -179,8 +180,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   // Teste de TTS
                   ListTile(
-                    title: const Text('Testar TTS'),
-                    subtitle: const Text('Toque para testar as configurações'),
+                    title: Text(translation('ui.testTts')),
+                    subtitle: Text(translation('ui.tapToTest')),
                     leading: const Icon(Icons.play_arrow),
                     trailing: IconButton(
                       onPressed: _testTTS,
@@ -195,12 +196,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // Configuração Parental
               _buildSection(
-                title: 'Configuração Parental',
+                title: translation('ui.parentalConfig'),
                 icon: Icons.family_restroom,
                 children: [
                   ListTile(
-                    title: const Text('Configurar Áudios Disponíveis'),
-                    subtitle: const Text('Configure quais áudios estarão disponíveis para a criança'),
+                    title: Text(translation('ui.configureAudios')),
+                    subtitle: Text(translation('ui.configureAudiosDesc')),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
                       Navigator.push(
@@ -218,30 +219,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               // Informações do app
               _buildSection(
-                title: 'Sobre o App',
+                title: translation('ui.aboutApp'),
                 icon: Icons.info,
                 children: [
                   ListTile(
-                    title: const Text('Versão'),
+                    title: Text(translation('ui.version')),
                     subtitle: const Text('1.0.0'),
                     leading: const Icon(Icons.app_settings_alt),
                   ),
                   ListTile(
-                    title: const Text('Desenvolvedor'),
+                    title: Text(translation('ui.developer')),
                     subtitle: const Text('My First Words Team'),
                     leading: const Icon(Icons.developer_mode),
                   ),
                   ListTile(
-                    title: const Text('Descrição'),
-                    subtitle: const Text('Aplicativo de comunicação alternativa para crianças autistas'),
+                    title: Text(translation('ui.description')),
+                    subtitle: Text(translation('ui.appDescription')),
                     leading: const Icon(Icons.description),
                   ),
                 ],
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

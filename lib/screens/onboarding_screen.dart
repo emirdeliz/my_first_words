@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/language_provider.dart';
 import '../screens/communication_board_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -37,9 +39,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           const SizedBox(width: 4),
           const Spacer(),
-          TextButton(
-            onPressed: _completeOnboarding,
-            child: const Text('Pular'),
+          Consumer<LanguageProvider>(
+            builder: (context, languageProvider, child) {
+              return TextButton(
+                onPressed: _completeOnboarding,
+                child: Text(languageProvider.getTranslation('ui.skip')),
+              );
+            },
           ),
         ],
       ),
