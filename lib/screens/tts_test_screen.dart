@@ -196,24 +196,95 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
     });
 
     try {
+      // Verificar TTS básico
       final isAvailable = await _audioService.isTTSAvailable();
+      print('🔍 Basic TTS Check: $isAvailable');
       
-      if (isAvailable) {
+      // Verificar idiomas disponíveis
+      final languages = await _audioService.getAvailableLanguages();
+      print('🌍 Available Languages: ${languages.length}');
+      
+      // Verificar vozes disponíveis
+      final voices = await _audioService.getAvailableVoices();
+      print('🎤 Available Voices: ${voices.length}');
+      
+      // Verificar se o dispositivo tem TTS instalado
+      bool hasTTS = false;
+      try {
+        hasTTS = await _audioService.checkLanguageAvailability('en');
+        print('🔍 Device TTS Engine: $hasTTS');
+      } catch (e) {
+        print('❌ TTS Engine Check Failed: $e');
+      }
+      
+      if (isAvailable && hasTTS && voices.isNotEmpty) {
         setState(() {
-          _status = '✅ TTS disponível no dispositivo!';
+          _status = '✅ TTS funcionando! ${voices.length} vozes, ${languages.length} idiomas';
         });
-        print('✅ Device TTS is available');
+        print('✅ TTS is working properly');
       } else {
         setState(() {
-          _status = '❌ TTS não disponível no dispositivo';
+          _status = '❌ TTS com problemas: Vozes=${voices.length}, Idiomas=${languages.length}';
         });
-        print('❌ Device TTS is not available');
+        print('❌ TTS has issues');
       }
     } catch (e) {
       setState(() {
         _status = 'Erro ao verificar TTS: $e';
       });
       print('❌ Device TTS Check Error: $e');
+    }
+  }
+
+  Future<void> _testDirectTTS() async {
+    setState(() {
+      _isSpeaking = true;
+      _status = 'Testando TTS direto...';
+    });
+
+    try {
+      print('🔄 Starting direct TTS test...');
+      
+      // Teste 1: TTS básico sem inicialização
+      try {
+        await _audioService.speakDirect('Teste direto');
+        print('✅ Direct TTS test 1 passed');
+        await Future.delayed(Duration(seconds: 2));
+      } catch (e) {
+        print('❌ Direct TTS test 1 failed: $e');
+      }
+      
+      // Teste 2: Com inicialização
+      try {
+        await _audioService.initialize();
+        await _audioService.speakDirect('Teste com inicialização');
+        print('✅ Direct TTS test 2 passed');
+        await Future.delayed(Duration(seconds: 2));
+      } catch (e) {
+        print('❌ Direct TTS test 2 failed: $e');
+      }
+      
+      // Teste 3: Com idioma específico
+      try {
+        await _audioService.setLanguageDirect('en');
+        await _audioService.speakDirect('Hello world');
+        print('✅ Direct TTS test 3 passed');
+      } catch (e) {
+        print('❌ Direct TTS test 3 failed: $e');
+      }
+      
+      setState(() {
+        _status = 'Teste direto concluído! Verifique o console.';
+      });
+    } catch (e) {
+      setState(() {
+        _status = 'Erro no teste direto: $e';
+      });
+      print('❌ Direct TTS Test Error: $e');
+    } finally {
+      setState(() {
+        _isSpeaking = false;
+      });
     }
   }
 
@@ -281,6 +352,16 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
               primary: false,
               large: true,
               onPressed: _checkDeviceTTS,
+            ),
+
+            const DSVerticalSpacing.md(),
+
+            DSButton(
+              text: 'Teste Direto TTS',
+              icon: Icons.record_voice_over,
+              primary: true,
+              large: true,
+              onPressed: _testDirectTTS,
             ),
 
             const DSVerticalSpacing.md(),

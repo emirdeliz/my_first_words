@@ -6,6 +6,7 @@ import '../providers/parental_config_provider.dart';
 import '../services/audio_service.dart';
 import '../design_system/design_system.dart';
 import 'parental_config_screen.dart';
+import 'permissions_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -217,6 +218,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ParentalConfigScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              const DSVerticalSpacing.xl2(),
+
+              // Permissões do App
+              _buildSection(
+                title: 'Permissões do App',
+                icon: Icons.security,
+                children: [
+                  DSListItem(
+                    title: 'Gerenciar Permissões',
+                    subtitle: 'Verificar e solicitar permissões necessárias',
+                    trailing: const DSIcon(Icons.arrow_forward_ios, icon2: true),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PermissionsScreen(),
                         ),
                       );
                     },

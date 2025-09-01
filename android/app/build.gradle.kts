@@ -28,6 +28,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Configurações para permissões
+        manifestPlaceholders["usesCleartextTraffic"] = "true"
     }
 
     buildTypes {

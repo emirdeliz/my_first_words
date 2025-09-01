@@ -279,6 +279,8 @@ class AudioService {
 
   Future<void> speak(String text, [String? languageCode]) async {
     try {
+      print('🔄 Speak called with text: "$text" and language: $languageCode');
+      
       if (!_isInitialized) {
         print('🔄 TTS not initialized, initializing now...');
         await initialize(languageCode);
@@ -289,25 +291,42 @@ class AudioService {
       }
 
       // Verificar se o TTS está funcionando
-      final isAvailable = await _flutterTts.isLanguageAvailable(languageCode ?? 'pt-BR');
-      print('🌍 Language available: $isAvailable');
+      bool isAvailable = false;
+      try {
+        isAvailable = await _flutterTts.isLanguageAvailable(languageCode ?? 'pt-BR');
+        print('🌍 Language available: $isAvailable');
+      } catch (e) {
+        print('⚠️ Could not check language availability: $e');
+      }
       
-      // Verificar configurações do TTS
-      print('🔊 TTS Status check completed');
+      // Verificar se o TTS está ativo
+      try {
+        // isSpeaking não existe no flutter_tts, vamos pular essa verificação
+        print('🔊 TTS speaking status check skipped (not available)');
+      } catch (e) {
+        print('⚠️ Could not check speaking status: $e');
+      }
       
+      // Tentar falar
+      print('🎯 Attempting to speak: $text');
       await _flutterTts.speak(text);
-      print('🔊 Speaking: $text');
+      print('✅ Speak command sent successfully');
+      
     } catch (e) {
       print('❌ Error speaking: $e');
       print('❌ Error details: ${e.toString()}');
+      print('❌ Error type: ${e.runtimeType}');
+      
       // Tentar reinicializar em caso de erro
       _isInitialized = false;
-      await initialize(languageCode);
       try {
+        print('🔄 Attempting to reinitialize TTS...');
+        await initialize(languageCode);
         await _flutterTts.speak(text);
-        print('🔊 Speaking after reinitialization: $text');
+        print('✅ Speaking after reinitialization: $text');
       } catch (e2) {
         print('❌ Error after reinitialization: $e2');
+        print('❌ Final error details: ${e2.toString()}');
       }
     }
   }
@@ -427,12 +446,66 @@ class AudioService {
 
   Future<bool> isTTSAvailable() async {
     try {
+      print('🔍 Starting comprehensive TTS availability check...');
+      
       // Verificar se o TTS está funcionando
-      final hasLanguage = await _flutterTts.isLanguageAvailable('en');
-      print('🔍 TTS Availability Check: $hasLanguage');
-      return hasLanguage;
+      bool hasLanguage = false;
+      try {
+        hasLanguage = await _flutterTts.isLanguageAvailable('en');
+        print('🔍 TTS Language Check: $hasLanguage');
+      } catch (e) {
+        print('❌ TTS Language Check Failed: $e');
+      }
+      
+      // Verificar se o TTS está ativo
+      print('🔍 TTS Speaking Status check skipped (not available)');
+      
+      // Verificar se o TTS pode ser configurado
+      bool canConfigure = false;
+      try {
+        await _flutterTts.setSpeechRate(0.5);
+        canConfigure = true;
+        print('🔍 TTS Configuration Check: $canConfigure');
+      } catch (e) {
+        print('❌ TTS Configuration Check Failed: $e');
+      }
+      
+      final overallStatus = hasLanguage && canConfigure;
+      print('🔍 Overall TTS Status: $overallStatus');
+      
+      return overallStatus;
     } catch (e) {
       print('❌ TTS Availability Check Failed: $e');
+      return false;
+    }
+  }
+
+  // Métodos públicos para testes diretos
+  Future<void> speakDirect(String text) async {
+    try {
+      await _flutterTts.speak(text);
+      print('✅ Direct speak: $text');
+    } catch (e) {
+      print('❌ Direct speak failed: $e');
+    }
+  }
+
+  Future<void> setLanguageDirect(String language) async {
+    try {
+      await _flutterTts.setLanguage(language);
+      print('✅ Direct language set: $language');
+    } catch (e) {
+      print('❌ Direct language set failed: $e');
+    }
+  }
+
+  Future<bool> checkLanguageAvailability(String language) async {
+    try {
+      final available = await _flutterTts.isLanguageAvailable(language);
+      print('✅ Language availability check: $language = $available');
+      return available;
+    } catch (e) {
+      print('❌ Language availability check failed: $e');
       return false;
     }
   }
