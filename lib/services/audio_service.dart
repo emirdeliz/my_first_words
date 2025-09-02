@@ -1,11 +1,10 @@
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
-  
+
   final FlutterTts _flutterTts = FlutterTts();
   bool _isInitialized = false;
 
@@ -36,65 +35,110 @@ class AudioService {
 
     try {
       final language = languageCode ?? 'pt-BR';
-      
-      // Web TTS availability depends on browser; offline generally not guaranteed
-      if (kIsWeb) {
-        await _flutterTts.setLanguage(language);
-        await _flutterTts.setSpeechRate(0.5);
-        await _flutterTts.setVolume(1.0);
-        await _flutterTts.setPitch(1.0);
-        _isInitialized = true;
-        print('✅ AudioService initialized for Web with language: $language');
-        return;
-      }
-
       print('🔄 Initializing TTS for language: $language');
-      
-      // Verificar se o TTS está disponível no dispositivo
-      try {
-        final ttsStatus = await _flutterTts.isLanguageAvailable('en');
-        print('🔍 TTS Engine Status: $ttsStatus');
-      } catch (e) {
-        print('⚠️ TTS Engine check failed: $e');
-      }
-      
-      // Verificar se o idioma está disponível
-      final isAvailable = await _flutterTts.isLanguageAvailable(language);
-      print('🌍 Language available: $isAvailable');
-      
-      if (!isAvailable) {
-        print('⚠️ Language $language not available, trying fallback...');
-        // Tentar idioma base (pt, en, es, de)
-        final baseLanguage = language.split('-')[0];
-        final fallbackAvailable = await _flutterTts.isLanguageAvailable(baseLanguage);
-        if (fallbackAvailable) {
-          print('✅ Using fallback language: $baseLanguage');
-          await _flutterTts.setLanguage(baseLanguage);
-        } else {
-          print('⚠️ Fallback language also not available, using default');
-          // Tentar inglês como último recurso
-          try {
-            await _flutterTts.setLanguage('en');
-            print('✅ Using English as fallback');
-          } catch (e) {
-            print('❌ Even English fallback failed: $e');
+
+      // Try to select a stable engine on Android (non-blocking, best-effort)
+      () async {
+        try {
+          final engines = await _flutterTts.getEngines
+              .timeout(const Duration(milliseconds: 1200), onTimeout: () => []);
+          if (engines is List && engines.isNotEmpty) {
+            final engineNames = engines.map((e) => e.toString()).toList();
+            final googleTts = engineNames.firstWhere(
+              (e) => e.contains('com.google.android.tts'),
+              orElse: () => '',
+            );
+            if (googleTts.isNotEmpty) {
+              try {
+                await _flutterTts
+                    .setEngine(googleTts)
+                    .timeout(const Duration(milliseconds: 800));
+                print('✅ TTS engine selected: $googleTts');
+              } catch (_) {}
+            }
           }
-        }
-      } else {
-        await _flutterTts.setLanguage(language);
+        } catch (_) {}
+      }();
+
+      // 1) Base config quickly, without blocking on lookups
+      try {
+        await _flutterTts
+            .setLanguage(language)
+            .timeout(const Duration(milliseconds: 1200));
+      } catch (_) {
+        // Silent fallback: continue without forcing language now
       }
-      
-      await _flutterTts.setSpeechRate(0.5);
-      await _flutterTts.setVolume(1.0);
-      await _flutterTts.setPitch(1.0);
-      
-      // Verificar configurações aplicadas
-      print('✅ TTS configured successfully');
-      
-      await _applyPreferredVoice(language);
-      
+      try {
+        await _flutterTts
+            .setSpeechRate(0.5)
+            .timeout(const Duration(milliseconds: 800));
+      } catch (_) {
+        // Silent fallback
+      }
+      try {
+        await _flutterTts
+            .setVolume(1.0)
+            .timeout(const Duration(milliseconds: 800));
+      } catch (_) {
+        // Silent fallback
+      }
+      try {
+        await _flutterTts
+            .setPitch(1.0)
+            .timeout(const Duration(milliseconds: 800));
+      } catch (_) {
+        // Silent fallback
+      }
       _isInitialized = true;
-      print('✅ AudioService initialized successfully with language: $language');
+      print('✅ Base TTS configured');
+
+      // 2) Fire-and-forget checks and voice selection with short timeouts
+      // Avoid blocking UI if device is offline or engine is slow
+      () async {
+        try {
+          // Wrap language availability in timeout (1.5s)
+          bool isAvailable = true;
+          try {
+            isAvailable = await _flutterTts
+                .isLanguageAvailable(language)
+                .timeout(const Duration(minutes: 1));
+            print('🌍 Language available (timed): $isAvailable');
+          } catch (e) {
+            print('⚠️ Language availability check timed out or failed: $e');
+          }
+
+          if (!isAvailable) {
+            final baseLanguage = language.split('-')[0];
+            try {
+              final fallbackAvailable = await _flutterTts
+                  .isLanguageAvailable(baseLanguage)
+                  .timeout(const Duration(milliseconds: 1500));
+              if (fallbackAvailable) {
+                await _flutterTts.setLanguage(baseLanguage);
+                print('✅ Using fallback language: $baseLanguage');
+              } else {
+                try {
+                  await _flutterTts.setLanguage('en');
+                  print('✅ Using English as last-resort fallback');
+                } catch (_) {}
+              }
+            } catch (e) {
+              print('⚠️ Fallback language check failed: $e');
+            }
+          }
+
+          // Apply preferred voice with timeout (2s)
+          try {
+            await _applyPreferredVoice(language)
+                .timeout(const Duration(seconds: 2));
+          } catch (_) {}
+        } catch (e) {
+          print('⚠️ Post-init tasks failed: $e');
+        }
+      }();
+
+      print(
+          '✅ AudioService initialized successfully (non-blocking) with language: $language');
     } catch (e) {
       print('❌ Error initializing AudioService: $e');
       print('❌ Error details: ${e.toString()}');
@@ -105,22 +149,26 @@ class AudioService {
   bool _isVoiceOfflineCapable(Map<String, dynamic> v) {
     final name = (v['name'] ?? '').toString().toLowerCase();
     final engine = (v['engine'] ?? '').toString().toLowerCase();
-    final requiresNetwork = (
-      v['requiresNetwork'] ?? v['isNetworkConnectionRequired'] ?? v['networkConnectionRequired'] ?? false
-    );
+    final requiresNetwork = (v['requiresNetwork'] ??
+        v['isNetworkConnectionRequired'] ??
+        v['networkConnectionRequired'] ??
+        false);
     final requiresNetworkBool = requiresNetwork is bool
         ? requiresNetwork
         : requiresNetwork.toString().toLowerCase() == 'true';
     // Heuristics to avoid cloud/online-only voices
-    final looksCloud = name.contains('cloud') || name.contains('online') || name.contains('wavenet');
+    final looksCloud = name.contains('cloud') ||
+        name.contains('online') ||
+        name.contains('wavenet');
     return !requiresNetworkBool && !looksCloud && !engine.contains('cloud');
   }
 
-  Future<void> _applyPreferredVoice([String? specificProfile, String? languageCode]) async {
+  Future<void> _applyPreferredVoice(
+      [String? specificProfile, String? languageCode]) async {
     try {
       String voiceProfile = specificProfile ?? 'female';
       final language = languageCode ?? 'pt-BR';
-      
+
       if (specificProfile == null) {
         final prefs = await SharedPreferences.getInstance();
         final profile = prefs.getString('parental_config') ?? '';
@@ -129,7 +177,8 @@ class AudioService {
           // naive extraction to avoid json decode dependence here
           // Prefer passing explicitly from provider in real apps
           if (profile.contains('"voiceProfile":"male"')) voiceProfile = 'male';
-          if (profile.contains('"voiceProfile":"child"')) voiceProfile = 'child';
+          if (profile.contains('"voiceProfile":"child"'))
+            voiceProfile = 'child';
         }
       }
 
@@ -139,23 +188,41 @@ class AudioService {
       bool matchesLanguage(Map<String, dynamic> v, String targetLanguage) {
         final name = (v['name'] ?? '').toString().toLowerCase();
         final locale = (v['locale'] ?? '').toString().toLowerCase();
-        
+
         switch (targetLanguage.toLowerCase()) {
           case 'pt-br':
-            final isPtBr = locale.contains('pt-br') || locale.contains('pt_br') || name.contains('pt-br') || name.contains('pt_br') || name.contains('brazil');
-            final isPtPt = locale.contains('pt-pt') || locale.contains('pt_pt') || name.contains('pt-pt') || name.contains('pt_pt') || name.contains('portugal');
+            final isPtBr = locale.contains('pt-br') ||
+                locale.contains('pt_br') ||
+                name.contains('pt-br') ||
+                name.contains('pt_br') ||
+                name.contains('brazil');
+            final isPtPt = locale.contains('pt-pt') ||
+                locale.contains('pt_pt') ||
+                name.contains('pt-pt') ||
+                name.contains('pt_pt') ||
+                name.contains('portugal');
             return isPtBr && !isPtPt;
           case 'en':
           case 'en-us':
-            return locale.contains('en') || name.contains('en') || name.contains('english') || name.contains('us');
+            return locale.contains('en') ||
+                name.contains('en') ||
+                name.contains('english') ||
+                name.contains('us');
           case 'es':
           case 'es-es':
-            return locale.contains('es') || name.contains('es') || name.contains('spanish') || name.contains('español');
+            return locale.contains('es') ||
+                name.contains('es') ||
+                name.contains('spanish') ||
+                name.contains('español');
           case 'de':
           case 'de-de':
-            return locale.contains('de') || name.contains('de') || name.contains('german') || name.contains('deutsch');
+            return locale.contains('de') ||
+                name.contains('de') ||
+                name.contains('german') ||
+                name.contains('deutsch');
           default:
-            return locale.contains(targetLanguage.toLowerCase()) || name.contains(targetLanguage.toLowerCase());
+            return locale.contains(targetLanguage.toLowerCase()) ||
+                name.contains(targetLanguage.toLowerCase());
         }
       }
 
@@ -164,11 +231,21 @@ class AudioService {
         final quality = (v['quality'] ?? '').toString().toLowerCase();
         final genderField = (v['gender'] ?? '').toString().toLowerCase();
         if (gender == 'male') {
-          return genderField.contains('male') || name.contains('male') || name.contains('masc') || name.contains('m1');
+          return genderField.contains('male') ||
+              name.contains('male') ||
+              name.contains('masc') ||
+              name.contains('m1');
         } else if (gender == 'female') {
-          return genderField.contains('female') || name.contains('female') || name.contains('fem') || name.contains('f1');
+          return genderField.contains('female') ||
+              name.contains('female') ||
+              name.contains('fem') ||
+              name.contains('f1');
         } else if (gender == 'child') {
-          return name.contains('child') || name.contains('kid') || name.contains('crianca') || name.contains('jovem') || quality.contains('enhanced');
+          return name.contains('child') ||
+              name.contains('kid') ||
+              name.contains('crianca') ||
+              name.contains('jovem') ||
+              quality.contains('enhanced');
         }
         return false;
       }
@@ -191,16 +268,20 @@ class AudioService {
       for (final v in languageVoices) {
         if (_isVoiceOfflineCapable(v)) offlineCandidates.add(v);
       }
-      final source = offlineCandidates.isNotEmpty ? offlineCandidates : languageVoices;
+      final source =
+          offlineCandidates.isNotEmpty ? offlineCandidates : languageVoices;
 
       // Try to find a voice that matches the profile
       Map<String, dynamic>? selectedVoice;
-      
+
       if (voiceProfile == 'male') {
         // Look for male characteristics
         for (final voice in source) {
           final name = (voice['name'] ?? '').toString().toLowerCase();
-          if (name.contains('masc') || name.contains('m1') || name.contains('male') || name.contains('homem')) {
+          if (name.contains('masc') ||
+              name.contains('m1') ||
+              name.contains('male') ||
+              name.contains('homem')) {
             selectedVoice = voice;
             break;
           }
@@ -210,7 +291,10 @@ class AudioService {
         // Look for female characteristics
         for (final voice in source) {
           final name = (voice['name'] ?? '').toString().toLowerCase();
-          if (name.contains('fem') || name.contains('f1') || name.contains('female') || name.contains('mulher')) {
+          if (name.contains('fem') ||
+              name.contains('f1') ||
+              name.contains('female') ||
+              name.contains('mulher')) {
             selectedVoice = voice;
             break;
           }
@@ -220,7 +304,10 @@ class AudioService {
         // Look for child characteristics
         for (final voice in source) {
           final name = (voice['name'] ?? '').toString().toLowerCase();
-          if (name.contains('crianca') || name.contains('jovem') || name.contains('child') || name.contains('kid')) {
+          if (name.contains('crianca') ||
+              name.contains('jovem') ||
+              name.contains('child') ||
+              name.contains('kid')) {
             selectedVoice = voice;
             break;
           }
@@ -242,7 +329,8 @@ class AudioService {
         final locale = chosen['locale'];
         if (voiceName != null) {
           await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
-          print('🗣️ Using $voiceProfile voice: $voiceName (${locale ?? 'unknown'})');
+          print(
+              '🗣️ Using $voiceProfile voice: $voiceName (${locale ?? 'unknown'})');
         }
       }
     } catch (e) {
@@ -280,7 +368,7 @@ class AudioService {
   Future<void> speak(String text, [String? languageCode]) async {
     try {
       print('🔄 Speak called with text: "$text" and language: $languageCode');
-      
+
       if (!_isInitialized) {
         print('🔄 TTS not initialized, initializing now...');
         await initialize(languageCode);
@@ -293,12 +381,13 @@ class AudioService {
       // Verificar se o TTS está funcionando
       bool isAvailable = false;
       try {
-        isAvailable = await _flutterTts.isLanguageAvailable(languageCode ?? 'pt-BR');
+        isAvailable =
+            await _flutterTts.isLanguageAvailable(languageCode ?? 'pt-BR');
         print('🌍 Language available: $isAvailable');
       } catch (e) {
         print('⚠️ Could not check language availability: $e');
       }
-      
+
       // Verificar se o TTS está ativo
       try {
         // isSpeaking não existe no flutter_tts, vamos pular essa verificação
@@ -306,17 +395,16 @@ class AudioService {
       } catch (e) {
         print('⚠️ Could not check speaking status: $e');
       }
-      
+
       // Tentar falar
       print('🎯 Attempting to speak: $text');
       await _flutterTts.speak(text);
       print('✅ Speak command sent successfully');
-      
     } catch (e) {
       print('❌ Error speaking: $e');
       print('❌ Error details: ${e.toString()}');
       print('❌ Error type: ${e.runtimeType}');
-      
+
       // Tentar reinicializar em caso de erro
       _isInitialized = false;
       try {
@@ -379,33 +467,65 @@ class AudioService {
   Future<List<Map<String, dynamic>>> getAvailableVoices() async {
     try {
       print('🔄 Getting available voices from TTS...');
-      final voices = await _flutterTts.getVoices;
-      print('🎤 Raw voices response: $voices');
-      
-      final List<Map<String, dynamic>> convertedVoices = [];
-      
-      if (voices is List) {
-        print('✅ Voices is a List with ${voices.length} items');
-        for (final voice in voices) {
-          if (voice is Map) {
-            convertedVoices.add(Map<String, dynamic>.from(voice));
-          } else {
-            print('⚠️ Voice item is not a Map: ${voice.runtimeType} - $voice');
-          }
-        }
-      } else {
-        print('⚠️ Voices is not a List: ${voices.runtimeType}');
+
+      Future<List<dynamic>> _fetchVoicesRaw() async {
+        final resp = await _flutterTts.getVoices;
+
+        print('🎤 Resp: $resp');
+        return (resp is List) ? resp : [];
       }
-      
+
+      List<dynamic> raw = await _fetchVoicesRaw();
+      print('🎤 Available voices: ${raw.length}');
+
+      // If empty, try best-effort remediation: pick Google engine and re-apply language, then retry
+      int attempts = 0;
+      while (raw.isEmpty && attempts < 2) {
+        attempts++;
+        try {
+          final engines = await _flutterTts.getEngines
+              .timeout(const Duration(milliseconds: 1200), onTimeout: () => []);
+          if (engines is List && engines.isNotEmpty) {
+            final engineNames = engines.map((e) => e.toString()).toList();
+            final googleTts = engineNames.firstWhere(
+              (e) => e.contains('com.google.android.tts'),
+              orElse: () => '',
+            );
+            if (googleTts.isNotEmpty) {
+              try {
+                await _flutterTts
+                    .setEngine(googleTts)
+                    .timeout(const Duration(milliseconds: 800));
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+
+        // Re-apply current language quickly (ignore errors)
+        try {
+          await _flutterTts
+              .setLanguage('pt-BR')
+              .timeout(const Duration(milliseconds: 800));
+        } catch (_) {}
+
+        await Future.delayed(const Duration(milliseconds: 250));
+        raw = await _fetchVoicesRaw();
+      }
+
+      final List<Map<String, dynamic>> convertedVoices = [];
+      for (final voice in raw) {
+        if (voice is Map) {
+          convertedVoices.add(Map<String, dynamic>.from(voice));
+        }
+      }
+
       print('🎤 Converted ${convertedVoices.length} voices');
       if (convertedVoices.isNotEmpty) {
         print('🎤 Sample voice: ${convertedVoices.first}');
       }
-      
       return convertedVoices;
     } catch (e) {
       print('❌ Error getting voices: $e');
-      print('❌ Error details: ${e.toString()}');
       return [];
     }
   }
@@ -415,27 +535,28 @@ class AudioService {
       print('🔄 Getting available languages from TTS...');
       final languages = await _flutterTts.getLanguages;
       print('🌍 Raw languages response: $languages');
-      
+
       final List<String> convertedLanguages = [];
-      
+
       if (languages is List) {
         print('✅ Languages is a List with ${languages.length} items');
         for (final language in languages) {
           if (language is String) {
             convertedLanguages.add(language);
           } else {
-            print('⚠️ Language item is not a String: ${language.runtimeType} - $language');
+            print(
+                '⚠️ Language item is not a String: ${language.runtimeType} - $language');
           }
         }
       } else {
         print('⚠️ Languages is not a List: ${languages.runtimeType}');
       }
-      
+
       print('🌍 Converted ${convertedLanguages.length} languages');
       if (convertedLanguages.isNotEmpty) {
         print('🌍 Sample language: ${convertedLanguages.first}');
       }
-      
+
       return convertedLanguages;
     } catch (e) {
       print('❌ Error getting languages: $e');
@@ -447,7 +568,7 @@ class AudioService {
   Future<bool> isTTSAvailable() async {
     try {
       print('🔍 Starting comprehensive TTS availability check...');
-      
+
       // Verificar se o TTS está funcionando
       bool hasLanguage = false;
       try {
@@ -456,10 +577,10 @@ class AudioService {
       } catch (e) {
         print('❌ TTS Language Check Failed: $e');
       }
-      
+
       // Verificar se o TTS está ativo
       print('🔍 TTS Speaking Status check skipped (not available)');
-      
+
       // Verificar se o TTS pode ser configurado
       bool canConfigure = false;
       try {
@@ -469,10 +590,10 @@ class AudioService {
       } catch (e) {
         print('❌ TTS Configuration Check Failed: $e');
       }
-      
+
       final overallStatus = hasLanguage && canConfigure;
       print('🔍 Overall TTS Status: $overallStatus');
-      
+
       return overallStatus;
     } catch (e) {
       print('❌ TTS Availability Check Failed: $e');
@@ -514,5 +635,3 @@ class AudioService {
     _flutterTts.stop();
   }
 }
-
-

@@ -590,6 +590,9 @@ class _VoiceSelectionDialogState extends State<VoiceSelectionDialog> {
     try {
       print('🔄 Loading voices...');
       await _audioService.initialize();
+
+
+      print('🔄 Getting available voices...');
       final voices = await _audioService.getAvailableVoices();
       
       print('🎤 Total voices found: ${voices.length}');

@@ -10,13 +10,13 @@ import '../services/audio_service.dart';
 import '../design_system/design_system.dart';
 import '../widgets/communication_item_card.dart';
 import 'settings_screen.dart';
-import 'tts_test_screen.dart';
 
 class CommunicationBoardScreen extends StatefulWidget {
   const CommunicationBoardScreen({super.key});
 
   @override
-  State<CommunicationBoardScreen> createState() => _CommunicationBoardScreenState();
+  State<CommunicationBoardScreen> createState() =>
+      _CommunicationBoardScreenState();
 }
 
 class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
@@ -30,7 +30,8 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
 
   Future<void> _initializeAudioService() async {
     try {
-      await _audioService.initialize();
+      final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+      await _audioService.initialize(languageCode);
     } catch (e) {
       print('❌ Error initializing audio service: $e');
     }
@@ -48,7 +49,8 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer3<ThemeProvider, LanguageProvider, ParentalConfigProvider>(
-      builder: (context, themeProvider, languageProvider, parentalProvider, child) {
+      builder:
+          (context, themeProvider, languageProvider, parentalProvider, child) {
         final theme = themeProvider.currentTheme;
         final appTitle = languageProvider.getTranslation('appTitle');
         final enabledItems = parentalProvider.getEnabledItems();
@@ -66,14 +68,16 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
 
         return Scaffold(
           backgroundColor: theme.background,
-          body: SafeArea(top: false,
+          body: SafeArea(
+            top: false,
             child: Column(
               children: [
                 // Header com cor sólida (tons pastéis preferidos)
                 Container(
                   color: theme.primary.withValues(alpha: 0.9),
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(20, 16 + statusBarHeight, 20, 16),
+                    padding:
+                        EdgeInsets.fromLTRB(20, 16 + statusBarHeight, 20, 16),
                     child: Row(
                       children: [
                         // Microphone icon removed as requested
@@ -91,7 +95,8 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) => const SettingsScreen()),
                             );
                           },
                           icon: Icon(Icons.settings, color: theme.textInverse),
@@ -106,11 +111,13 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                   Expanded(
                     child: GridView.builder(
                       padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 0.85, // Ajustado para dar mais espaço vertical
+                        childAspectRatio:
+                            0.85, // Ajustado para dar mais espaço vertical
                       ),
                       itemCount: enabledItems.length,
                       itemBuilder: (context, index) {
@@ -166,7 +173,9 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SettingsScreen()),
                                 );
                               },
                             ),
