@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../atoms/ds_text.dart';
 import '../atoms/ds_icon.dart';
-import '../atoms/ds_spacing.dart';
 import '../tokens/design_tokens.dart';
 
 /// Molecular ListItem component
@@ -14,15 +13,15 @@ class DSListItem extends StatelessWidget {
   final Color? iconColor;
   final Color? titleColor;
   final Color? subtitleColor;
-  
+
   // Title size variants
   final bool titleLarge;
   final bool titleSmall;
-  
+
   // Subtitle size variants
   final bool subtitleLarge;
   final bool subtitleSmall;
-  
+
   // Icon size variants
   final bool icon1;
   final bool icon2;

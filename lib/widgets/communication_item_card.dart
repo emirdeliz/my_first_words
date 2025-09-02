@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/communication_item.dart';
 import '../models/theme_model.dart';
 import '../providers/language_provider.dart';
@@ -35,7 +34,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
@@ -43,7 +42,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _shadowAnimation = Tween<double>(
       begin: 4.0,
       end: 8.0,
@@ -107,13 +106,16 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      color: widget.theme.getItemColor(widget.item.type).withValues(alpha: 0.08),
+                      color: widget.theme
+                          .getItemColor(widget.item.type)
+                          .withValues(alpha: 0.08),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Ícone isométrico sem background
-                        _buildFunImage(widget.item.icon, widget.item.type, widget.theme.getItemColor(widget.item.type)),
+                        _buildFunImage(widget.item.icon, widget.item.type,
+                            widget.theme.getItemColor(widget.item.type)),
                         const SizedBox(height: 8),
                         // Texto com estilo melhorado
                         Text(
@@ -130,12 +132,20 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                         const SizedBox(height: 6),
                         // Indicador de categoria
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: _vibrantVariant(widget.theme.getItemColor(widget.item.type), widget.item.type).withValues(alpha: 0.15),
+                            color: _vibrantVariant(
+                                    widget.theme.getItemColor(widget.item.type),
+                                    widget.item.type)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _vibrantVariant(widget.theme.getItemColor(widget.item.type), widget.item.type).withValues(alpha: 0.4),
+                              color: _vibrantVariant(
+                                      widget.theme
+                                          .getItemColor(widget.item.type),
+                                      widget.item.type)
+                                  .withValues(alpha: 0.4),
                               width: 1,
                             ),
                           ),
@@ -144,7 +154,9 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: _vibrantVariant(widget.theme.getItemColor(widget.item.type), widget.item.type),
+                              color: _vibrantVariant(
+                                  widget.theme.getItemColor(widget.item.type),
+                                  widget.item.type),
                             ),
                           ),
                         ),
@@ -180,10 +192,10 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
   // Constrói imagem divertida baseada no tipo e ícone
   Widget _buildFunImage(String iconName, String type, Color color) {
     final String imageName = _getImageName(iconName, type);
-    
+
     return _buildImageOrIcon(imageName, color);
   }
-  
+
   Widget _buildImageOrIcon(String imageName, Color color) {
     return Image.asset(
       'assets/images/fun/$imageName.png',
@@ -211,7 +223,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
       },
     );
   }
-  
+
   String _getImageName(String iconName, String type) {
     // Mapeamento de ícones para nomes de imagem divertidos
     switch (iconName) {
@@ -228,7 +240,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
         return 'medicine';
       case 'help':
         return 'help';
-      
+
       // Emoções
       case 'sentiment_satisfied':
         return 'happy';
@@ -242,7 +254,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
         return 'excited';
       case 'sentiment_neutral':
         return 'tired';
-      
+
       // Atividades
       case 'sports_esports':
         return 'play';
@@ -252,7 +264,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
         return 'draw';
       case 'toys':
         return 'toys';
-      
+
       // Social
       case 'waving_hand':
         return 'hello';
@@ -266,7 +278,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
         return 'da';
       case 'add_circle':
         return 'more';
-      
+
       default:
         return iconName;
     }
@@ -311,7 +323,10 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
   }
 
   // Gera uma variação pastel determinística a partir de uma cor base e uma seed (ex.: nome do ícone)
-  Color _pastelVariant(Color base, String seed, {double saturation = 0.35, double lightness = 0.85, double hueDeltaDegrees = 18}) {
+  Color _pastelVariant(Color base, String seed,
+      {double saturation = 0.35,
+      double lightness = 0.85,
+      double hueDeltaDegrees = 18}) {
     final hsl = HSLColor.fromColor(base);
     final int hash = seed.codeUnits.fold(0, (acc, c) => acc + c);
     final int deltaIndex = (hash % 5) - 2; // -2..2
@@ -322,9 +337,12 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
         .withLightness(lightness.clamp(0.0, 1.0));
     return shifted.toColor();
   }
-  
+
   // Gera uma variação vibrante determinística a partir de uma cor base e uma seed
-  Color _vibrantVariant(Color base, String seed, {double saturation = 0.85, double lightness = 0.65, double hueDeltaDegrees = 25}) {
+  Color _vibrantVariant(Color base, String seed,
+      {double saturation = 0.85,
+      double lightness = 0.65,
+      double hueDeltaDegrees = 25}) {
     final hsl = HSLColor.fromColor(base);
     final int hash = seed.codeUnits.fold(0, (acc, c) => acc + c);
     final int deltaIndex = (hash % 7) - 3; // -3..3

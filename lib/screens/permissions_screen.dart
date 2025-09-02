@@ -55,23 +55,25 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
         _showPermissionInfoDialog(permission);
         return;
       }
-      
+
       final status = await permission.request();
       setState(() {
         _permissionStatuses[permission] = status;
       });
-      
+
       if (status.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Permissão ${_getPermissionName(permission)} concedida!'),
+            content: Text(
+                '✅ Permissão ${_getPermissionName(permission)} concedida!'),
             backgroundColor: Colors.green,
           ),
         );
       } else if (status.isDenied) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Permissão ${_getPermissionName(permission)} negada'),
+            content:
+                Text('❌ Permissão ${_getPermissionName(permission)} negada'),
             backgroundColor: Colors.red,
           ),
         );
@@ -93,7 +95,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Permissão Necessária'),
+        title: const Text('Permissão Necessária'),
         content: Text(
           'A permissão ${_getPermissionName(permission)} foi negada permanentemente. '
           'Você precisa habilitá-la nas configurações do dispositivo.',
@@ -101,14 +103,14 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               openAppSettings();
             },
-            child: Text('Abrir Configurações'),
+            child: const Text('Abrir Configurações'),
           ),
         ],
       ),
@@ -119,7 +121,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Informação sobre Permissão'),
+        title: const Text('Informação sobre Permissão'),
         content: Text(
           'A permissão ${_getPermissionName(permission)} não é necessária para o funcionamento básico do app. '
           'Esta permissão é opcional e pode ser ignorada.',
@@ -127,7 +129,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Entendi'),
+            child: const Text('Entendi'),
           ),
         ],
       ),
@@ -221,12 +223,12 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const DSVerticalSpacing.sm(),
-                        DSTitle(
+                        const DSTitle(
                           'Permissões do App',
                           textAlign: TextAlign.center,
                         ),
                         const DSVerticalSpacing.sm(),
-                        DSBody(
+                        const DSBody(
                           'O app precisa das seguintes permissões para funcionar corretamente:',
                           textAlign: TextAlign.center,
                         ),
@@ -237,7 +239,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                   const DSVerticalSpacing.lg(),
 
                   // Permissões Automáticas
-                  DSCard(
+                  const DSCard(
                     sp4: true,
                     br3: true,
                     child: Column(
@@ -250,17 +252,19 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                               color: Colors.green,
                               icon3: true,
                             ),
-                            const DSHorizontalSpacing.md(),
+                            DSHorizontalSpacing.md(),
                             DSTitle('Permissões Automáticas'),
                           ],
                         ),
-                        const DSVerticalSpacing.sm(),
-                        DSBody('Estas permissões são concedidas automaticamente:'),
-                        const DSVerticalSpacing.sm(),
+                        DSVerticalSpacing.sm(),
+                        DSBody(
+                            'Estas permissões são concedidas automaticamente:'),
+                        DSVerticalSpacing.sm(),
                         DSBody('• Internet - Para conectividade'),
                         DSBody('• Wake Lock - Para manter TTS ativo'),
                         DSBody('• Modificar Configurações de Áudio - Para TTS'),
-                        DSBody('• Acesso ao Estado da Rede - Para verificar conectividade'),
+                        DSBody(
+                            '• Acesso ao Estado da Rede - Para verificar conectividade'),
                       ],
                     ),
                   ),
@@ -271,11 +275,13 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                   Expanded(
                     child: ListView.separated(
                       itemCount: _permissionStatuses.length,
-                      separatorBuilder: (context, index) => const DSVerticalSpacing.md(),
+                      separatorBuilder: (context, index) =>
+                          const DSVerticalSpacing.md(),
                       itemBuilder: (context, index) {
-                        final permission = _permissionStatuses.keys.elementAt(index);
+                        final permission =
+                            _permissionStatuses.keys.elementAt(index);
                         final status = _permissionStatuses[permission]!;
-                        
+
                         return DSCard(
                           sp4: true,
                           br3: true,
@@ -293,7 +299,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                   ),
                                   const DSHorizontalSpacing.md(),
                                   Expanded(
-                                    child: DSTitle(_getPermissionName(permission)),
+                                    child:
+                                        DSTitle(_getPermissionName(permission)),
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -301,7 +308,8 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _getStatusColor(status).withOpacity(0.1),
+                                      color: _getStatusColor(status)
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
@@ -320,14 +328,17 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                               const DSVerticalSpacing.md(),
                               if (status != PermissionStatus.granted)
                                 DSButton(
-                                  text: status == PermissionStatus.permanentlyDenied
+                                  text: status ==
+                                          PermissionStatus.permanentlyDenied
                                       ? 'Abrir Configurações'
                                       : 'Solicitar Permissão',
-                                  icon: status == PermissionStatus.permanentlyDenied
+                                  icon: status ==
+                                          PermissionStatus.permanentlyDenied
                                       ? Icons.settings
                                       : Icons.security,
                                   primary: true,
-                                  onPressed: () => _requestPermission(permission),
+                                  onPressed: () =>
+                                      _requestPermission(permission),
                                 ),
                             ],
                           ),

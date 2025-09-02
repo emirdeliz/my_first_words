@@ -59,7 +59,7 @@ class _CommunicationBoardScreenState extends State<CommunicationBoardScreen> {
 
         // Configurar status bar com ícones brancos
         SystemChrome.setSystemUIOverlayStyle(
-          SystemUiOverlayStyle(
+          const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.light, // Ícones brancos
             statusBarBrightness: Brightness.dark, // Para iOS

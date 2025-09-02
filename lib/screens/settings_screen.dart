@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     try {
       final languages = await _audioService.getAvailableLanguages();
-      
+
       setState(() {
         _availableLanguages = languages;
       });
@@ -42,8 +42,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _testTTS() async {
-                            final languageCode = context.read<LanguageProvider>().currentLanguageCode;
-                        await _audioService.speak('Teste de configuração do TTS', languageCode);
+    final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+    await _audioService.speak('Teste de configuração do TTS', languageCode);
   }
 
   @override
@@ -67,13 +67,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   SwitchListTile(
                     title: DSSubtitle(translation('ui.darkMode')),
-                    subtitle: DSBody(translation('ui.enableDarkMode'), small: true),
+                    subtitle:
+                        DSBody(translation('ui.enableDarkMode'), small: true),
                     value: themeProvider.isDarkMode,
                     onChanged: (value) {
                       themeProvider.setTheme(value);
                     },
                     secondary: DSIcon(
-                      themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      themeProvider.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
                       color: Theme.of(context).colorScheme.primary,
                       icon3: true,
                     ),
@@ -98,8 +101,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (value != null) {
                           languageProvider.setLanguage(value, (languageCode) {
                             // Atualizar os itens de áudio quando o idioma muda
-                            final parentalProvider = context.read<ParentalConfigProvider>();
-                            parentalProvider.setCurrentLanguageCode(languageCode);
+                            final parentalProvider =
+                                context.read<ParentalConfigProvider>();
+                            parentalProvider
+                                .setCurrentLanguageCode(languageCode);
                             parentalProvider.updateLanguage(languageCode);
                           });
                           _audioService.setLanguage(value);
@@ -186,8 +191,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
 
-
-
                   // Teste de TTS
                   ListTile(
                     title: Text(translation('ui.testTts')),
@@ -212,7 +215,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   DSListItem(
                     title: translation('ui.configureAudios'),
                     subtitle: translation('ui.configureAudiosDesc'),
-                    trailing: const DSIcon(Icons.arrow_forward_ios, icon2: true),
+                    trailing:
+                        const DSIcon(Icons.arrow_forward_ios, icon2: true),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -235,12 +239,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   DSListItem(
                     title: 'Gerenciar Permissões',
                     subtitle: 'Verificar e solicitar permissões necessárias',
-                    trailing: const DSIcon(Icons.arrow_forward_ios, icon2: true),
+                    trailing:
+                        const DSIcon(Icons.arrow_forward_ios, icon2: true),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PermissionsScreen(),
+                          builder: (context) => const PermissionsScreen(),
                         ),
                       );
                     },
@@ -262,7 +267,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   ListTile(
                     title: Text(translation('ui.developer')),
-                    subtitle: const Text('Emir Marques de Liz with love for his son Miguel ❤️'),
+                    subtitle: const Text(
+                        'Emir Marques de Liz with love for his son Miguel ❤️'),
                     leading: const Icon(Icons.developer_mode),
                   ),
                   ListTile(
@@ -293,7 +299,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Row(
             children: [
-              DSIcon(icon, color: Theme.of(context).colorScheme.primary, icon3: true),
+              DSIcon(icon,
+                  color: Theme.of(context).colorScheme.primary, icon3: true),
               const DSHorizontalSpacing.md(),
               DSTitle(title),
             ],

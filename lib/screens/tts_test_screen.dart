@@ -26,7 +26,7 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
     setState(() {
       _status = 'Inicializando...';
     });
-    
+
     try {
       await _audioService.initialize();
       setState(() {
@@ -48,16 +48,16 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
     try {
       final languageCode = context.read<LanguageProvider>().currentLanguageCode;
       print('🔍 Testing TTS with language: $languageCode');
-      
+
       // Teste simples primeiro
       await _audioService.speak('Olá', languageCode);
-      await Future.delayed(Duration(seconds: 2));
-      
+      await Future.delayed(const Duration(seconds: 2));
+
       // Teste em inglês se não for português
       if (languageCode != 'pt-BR') {
         await _audioService.speak('Hello', 'en');
       }
-      
+
       setState(() {
         _status = 'Teste concluído! Verifique o console para logs.';
       });
@@ -84,8 +84,9 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       await _audioService.setVolume(0.8);
       await _audioService.setPitch(1.2);
       final languageCode = context.read<LanguageProvider>().currentLanguageCode;
-      await _audioService.speak('Teste com velocidade lenta, volume médio e tom alto', languageCode);
-      
+      await _audioService.speak(
+          'Teste com velocidade lenta, volume médio e tom alto', languageCode);
+
       setState(() {
         _status = 'Teste com opções concluído!';
       });
@@ -110,28 +111,28 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       // Teste em português
       await _audioService.setLanguage('pt-BR');
       await _audioService.speak('Olá, este é um teste em português');
-      
+
       // Aguarda um pouco
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Teste em inglês
       await _audioService.setLanguage('en');
       await _audioService.speak('Hello, this is a test in English');
-      
+
       // Aguarda um pouco
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Teste em espanhol
       await _audioService.setLanguage('es');
       await _audioService.speak('Hola, esta es una prueba en español');
-      
+
       // Aguarda um pouco
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Teste em alemão
       await _audioService.setLanguage('de');
       await _audioService.speak('Hallo, das ist ein Test auf Deutsch');
-      
+
       setState(() {
         _status = 'Teste de idiomas concluído!';
       });
@@ -169,16 +170,16 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       final languageCode = context.read<LanguageProvider>().currentLanguageCode;
       final voices = await _audioService.getAvailableVoices();
       final languages = await _audioService.getAvailableLanguages();
-      
+
       print('🔍 TTS Status Check:');
       print('🌍 Current Language: $languageCode');
       print('🎤 Available Voices: ${voices.length}');
       print('🌍 Available Languages: ${languages.length}');
-      
+
       if (voices.isNotEmpty) {
         print('🎤 First Voice: ${voices.first}');
       }
-      
+
       setState(() {
         _status = 'Status verificado! Verifique o console.';
       });
@@ -199,15 +200,15 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       // Verificar TTS básico
       final isAvailable = await _audioService.isTTSAvailable();
       print('🔍 Basic TTS Check: $isAvailable');
-      
+
       // Verificar idiomas disponíveis
       final languages = await _audioService.getAvailableLanguages();
       print('🌍 Available Languages: ${languages.length}');
-      
+
       // Verificar vozes disponíveis
       final voices = await _audioService.getAvailableVoices();
       print('🎤 Available Voices: ${voices.length}');
-      
+
       // Verificar se o dispositivo tem TTS instalado
       bool hasTTS = false;
       try {
@@ -216,15 +217,17 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       } catch (e) {
         print('❌ TTS Engine Check Failed: $e');
       }
-      
+
       if (isAvailable && hasTTS && voices.isNotEmpty) {
         setState(() {
-          _status = '✅ TTS funcionando! ${voices.length} vozes, ${languages.length} idiomas';
+          _status =
+              '✅ TTS funcionando! ${voices.length} vozes, ${languages.length} idiomas';
         });
         print('✅ TTS is working properly');
       } else {
         setState(() {
-          _status = '❌ TTS com problemas: Vozes=${voices.length}, Idiomas=${languages.length}';
+          _status =
+              '❌ TTS com problemas: Vozes=${voices.length}, Idiomas=${languages.length}';
         });
         print('❌ TTS has issues');
       }
@@ -244,26 +247,26 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
 
     try {
       print('🔄 Starting direct TTS test...');
-      
+
       // Teste 1: TTS básico sem inicialização
       try {
         await _audioService.speakDirect('Teste direto');
         print('✅ Direct TTS test 1 passed');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
       } catch (e) {
         print('❌ Direct TTS test 1 failed: $e');
       }
-      
+
       // Teste 2: Com inicialização
       try {
         await _audioService.initialize();
         await _audioService.speakDirect('Teste com inicialização');
         print('✅ Direct TTS test 2 passed');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.delayed(const Duration(seconds: 2));
       } catch (e) {
         print('❌ Direct TTS test 2 failed: $e');
       }
-      
+
       // Teste 3: Com idioma específico
       try {
         await _audioService.setLanguageDirect('en');
@@ -272,7 +275,7 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
       } catch (e) {
         print('❌ Direct TTS test 3 failed: $e');
       }
-      
+
       setState(() {
         _status = 'Teste direto concluído! Verifique o console.';
       });
@@ -310,8 +313,8 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
                   DSIcon(
                     _isSpeaking ? Icons.volume_up : Icons.volume_off,
                     icon7: true,
-                    color: _isSpeaking 
-                        ? Theme.of(context).colorScheme.primary 
+                    color: _isSpeaking
+                        ? Theme.of(context).colorScheme.primary
                         : Theme.of(context).colorScheme.secondary,
                   ),
                   const DSVerticalSpacing.sm(),
@@ -397,18 +400,20 @@ class _TTSTestScreenState extends State<TTSTestScreen> {
             const Spacer(),
 
             // Informações
-            DSCard(
+            const DSCard(
               sp4: true,
               br3: true,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DSTitle('Informações do TTS'),
-                  const DSVerticalSpacing.sm(),
-                  const DSBody('• Toque nos botões para testar diferentes funcionalidades'),
-                  const DSBody('• Use o botão "Parar Fala" para interromper o TTS'),
-                  const DSBody('• Teste 4 idiomas: Português, Inglês, Espanhol e Alemão'),
-                  const DSBody('• Verifique se o som está funcionando corretamente'),
+                  DSVerticalSpacing.sm(),
+                  DSBody(
+                      '• Toque nos botões para testar diferentes funcionalidades'),
+                  DSBody('• Use o botão "Parar Fala" para interromper o TTS'),
+                  DSBody(
+                      '• Teste 4 idiomas: Português, Inglês, Espanhol e Alemão'),
+                  DSBody('• Verifique se o som está funcionando corretamente'),
                 ],
               ),
             ),

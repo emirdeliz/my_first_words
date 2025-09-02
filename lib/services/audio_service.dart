@@ -177,8 +177,9 @@ class AudioService {
           // naive extraction to avoid json decode dependence here
           // Prefer passing explicitly from provider in real apps
           if (profile.contains('"voiceProfile":"male"')) voiceProfile = 'male';
-          if (profile.contains('"voiceProfile":"child"'))
+          if (profile.contains('"voiceProfile":"child"')) {
             voiceProfile = 'child';
+          }
         }
       }
 
@@ -468,14 +469,14 @@ class AudioService {
     try {
       print('🔄 Getting available voices from TTS...');
 
-      Future<List<dynamic>> _fetchVoicesRaw() async {
+      Future<List<dynamic>> fetchVoicesRaw() async {
         final resp = await _flutterTts.getVoices;
 
         print('🎤 Resp: $resp');
         return (resp is List) ? resp : [];
       }
 
-      List<dynamic> raw = await _fetchVoicesRaw();
+      List<dynamic> raw = await fetchVoicesRaw();
       print('🎤 Available voices: ${raw.length}');
 
       // If empty, try best-effort remediation: pick Google engine and re-apply language, then retry
@@ -509,7 +510,7 @@ class AudioService {
         } catch (_) {}
 
         await Future.delayed(const Duration(milliseconds: 250));
-        raw = await _fetchVoicesRaw();
+        raw = await fetchVoicesRaw();
       }
 
       final List<Map<String, dynamic>> convertedVoices = [];

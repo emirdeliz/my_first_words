@@ -28,13 +28,15 @@ class MyApp extends StatelessWidget {
       child: Consumer2<ThemeProvider, LanguageProvider>(
         builder: (context, themeProvider, languageProvider, child) {
           final theme = themeProvider.currentTheme;
-          
+
           return MaterialApp(
             title: 'My First Words',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: theme.primary,
-                brightness: themeProvider.isDarkMode ? Brightness.dark : Brightness.light,
+                brightness: themeProvider.isDarkMode
+                    ? Brightness.dark
+                    : Brightness.light,
               ),
               useMaterial3: true,
             ),
@@ -48,7 +50,7 @@ class MyApp extends StatelessWidget {
 }
 
 class _RootDecider extends StatefulWidget {
-  const _RootDecider({super.key});
+  const _RootDecider();
 
   @override
   State<_RootDecider> createState() => _RootDeciderState();
@@ -68,11 +70,12 @@ class _RootDeciderState extends State<_RootDecider> {
   Future<void> _loadFlag() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getBool('onboarding_complete') ?? false;
-    
+
     // Carregar idioma salvo
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
     await languageProvider.loadSavedLanguage();
-    
+
     // Carregar tema salvo
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     await themeProvider.loadSavedTheme();
@@ -88,22 +91,22 @@ class _RootDeciderState extends State<_RootDecider> {
         if (mounted) setState(() => _ttsReady = false);
       }
     });
-    
+
     if (!mounted) return;
     setState(() => _onboardingComplete = value);
   }
 
   Future<void> _checkConnectivity() async {
-  try {
-    final result = await InternetAddress.lookup('google.com')
-        .timeout(const Duration(seconds: 2));
-    if (result.isNotEmpty && result.first.rawAddress.isNotEmpty) {
-      print('✅ Internet reachable');
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 2));
+      if (result.isNotEmpty && result.first.rawAddress.isNotEmpty) {
+        print('✅ Internet reachable');
+      }
+    } catch (_) {
+      print('❌ No internet connectivity (lookup failed/timeout)');
     }
-  } catch (_) {
-    print('❌ No internet connectivity (lookup failed/timeout)');
   }
-}
 
   @override
   Widget build(BuildContext context) {
