@@ -132,6 +132,12 @@ class AudioService {
             await _applyPreferredVoice(language)
                 .timeout(const Duration(seconds: 2));
           } catch (_) {}
+
+          // Ensure offline defaults (female/male) are stored for offline usage
+          try {
+            await _ensureOfflineDefaultVoices(language)
+                .timeout(const Duration(seconds: 2));
+          } catch (_) {}
         } catch (e) {
           print('⚠️ Post-init tasks failed: $e');
         }
@@ -143,6 +149,90 @@ class AudioService {
       print('❌ Error initializing AudioService: $e');
       print('❌ Error details: ${e.toString()}');
       _isInitialized = false;
+    }
+  }
+
+  Future<void> _ensureOfflineDefaultVoices(String language) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final voices = await getAvailableVoices();
+
+      bool matchesLanguage(Map<String, dynamic> v) {
+        final name = (v['name'] ?? '').toString().toLowerCase();
+        final locale = (v['locale'] ?? '').toString().toLowerCase();
+        final target = language.toLowerCase();
+        if (target == 'pt-br' || target == 'pt_br') {
+          final isPtBr = locale.contains('pt-br') ||
+              locale.contains('pt_br') ||
+              name.contains('pt-br') ||
+              name.contains('pt_br') ||
+              name.contains('brazil');
+          final isPtPt = locale.contains('pt-pt') ||
+              locale.contains('pt_pt') ||
+              name.contains('pt-pt') ||
+              name.contains('pt_pt') ||
+              name.contains('portugal');
+          return isPtBr && !isPtPt;
+        }
+        return locale.contains(target) || name.contains(target);
+      }
+
+      Map<String, dynamic>? female;
+      Map<String, dynamic>? male;
+      for (final v in voices) {
+        if (!matchesLanguage(v)) continue;
+        if (!_isVoiceOfflineCapable(v)) continue;
+        final name = (v['name'] ?? '').toString().toLowerCase();
+        final genderField = (v['gender'] ?? '').toString().toLowerCase();
+        if (female == null &&
+            (genderField.contains('female') ||
+                name.contains('female') ||
+                name.contains('fem') ||
+                name.contains('f1'))) {
+          female = v;
+        }
+        if (male == null &&
+            (genderField.contains('male') ||
+                name.contains('male') ||
+                name.contains('masc') ||
+                name.contains('m1'))) {
+          male = v;
+        }
+        if (female != null && male != null) break;
+      }
+
+      // Fallback to any offline voices if gender heuristic not found
+      if (female == null) {
+        for (final v in voices) {
+          if (matchesLanguage(v) && _isVoiceOfflineCapable(v)) {
+            female = v;
+            break;
+          }
+        }
+      }
+      if (male == null) {
+        for (final v in voices) {
+          if (matchesLanguage(v) && _isVoiceOfflineCapable(v)) {
+            male = v;
+            break;
+          }
+        }
+      }
+
+      if (female != null) {
+        await prefs.setString(
+            'offline_voice_female_name', (female['name'] ?? '').toString());
+        await prefs.setString(
+            'offline_voice_female_locale', (female['locale'] ?? '').toString());
+      }
+      if (male != null) {
+        await prefs.setString(
+            'offline_voice_male_name', (male['name'] ?? '').toString());
+        await prefs.setString(
+            'offline_voice_male_locale', (male['locale'] ?? '').toString());
+      }
+    } catch (e) {
+      print('⚠️ ensureOfflineDefaultVoices failed: $e');
     }
   }
 
@@ -185,7 +275,6 @@ class AudioService {
 
       final voices = await getAvailableVoices();
 
-      Map<String, dynamic>? selected;
       bool matchesLanguage(Map<String, dynamic> v, String targetLanguage) {
         final name = (v['name'] ?? '').toString().toLowerCase();
         final locale = (v['locale'] ?? '').toString().toLowerCase();
@@ -227,29 +316,7 @@ class AudioService {
         }
       }
 
-      bool matchesGender(Map<String, dynamic> v, String gender) {
-        final name = (v['name'] ?? '').toString().toLowerCase();
-        final quality = (v['quality'] ?? '').toString().toLowerCase();
-        final genderField = (v['gender'] ?? '').toString().toLowerCase();
-        if (gender == 'male') {
-          return genderField.contains('male') ||
-              name.contains('male') ||
-              name.contains('masc') ||
-              name.contains('m1');
-        } else if (gender == 'female') {
-          return genderField.contains('female') ||
-              name.contains('female') ||
-              name.contains('fem') ||
-              name.contains('f1');
-        } else if (gender == 'child') {
-          return name.contains('child') ||
-              name.contains('kid') ||
-              name.contains('crianca') ||
-              name.contains('jovem') ||
-              quality.contains('enhanced');
-        }
-        return false;
-      }
+      // Removed unused helper: matchesGender
 
       // Filter voices for the target language
       final List<Map<String, dynamic>> languageVoices = [];
@@ -314,6 +381,26 @@ class AudioService {
           }
         }
         selectedVoice ??= source.first;
+      }
+
+      if (selectedVoice == null || selectedVoice.isEmpty) {
+        // If profile requested, try to use offline default stored in prefs
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          if (voiceProfile == 'female') {
+            final n = prefs.getString('offline_voice_female_name');
+            final l = prefs.getString('offline_voice_female_locale');
+            if (n != null && l != null) {
+              selectedVoice = {'name': n, 'locale': l};
+            }
+          } else if (voiceProfile == 'male') {
+            final n = prefs.getString('offline_voice_male_name');
+            final l = prefs.getString('offline_voice_male_locale');
+            if (n != null && l != null) {
+              selectedVoice = {'name': n, 'locale': l};
+            }
+          }
+        } catch (_) {}
       }
 
       if (selectedVoice != null && selectedVoice.isNotEmpty) {
@@ -426,6 +513,15 @@ class AudioService {
       print('⏹️ Speech stopped');
     } catch (e) {
       print('❌ Error stopping speech: $e');
+    }
+  }
+
+  Future<void> openTtsSettings() async {
+    try {
+      await _flutterTts.openTtsSettings();
+      print('⚙️ Opened TTS settings');
+    } catch (e) {
+      print('❌ Error opening TTS settings: $e');
     }
   }
 

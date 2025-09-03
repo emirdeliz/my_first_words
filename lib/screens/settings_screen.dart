@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _volume = 1.0;
   double _pitch = 1.0;
 
-  List<String> _availableLanguages = [];
+  // Removed unused field: _availableLanguages
 
   @override
   void initState() {
@@ -31,11 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     try {
-      final languages = await _audioService.getAvailableLanguages();
-
-      setState(() {
-        _availableLanguages = languages;
-      });
+      await _audioService.getAvailableLanguages();
     } catch (e) {
       print('Error loading settings: $e');
     }
@@ -125,6 +121,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: translation('ui.audioSettings'),
                 icon: Icons.volume_up,
                 children: [
+                  // Baixar vozes offline
+                  ListTile(
+                    title: const Text('Vozes off-line'),
+                    subtitle: const Text(
+                        'Baixar/gerenciar pacotes de voz sem internet'),
+                    leading: const Icon(Icons.download),
+                    trailing: IconButton(
+                      onPressed: () => _audioService.openTtsSettings(),
+                      icon: const Icon(Icons.open_in_new),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+
                   // Taxa de fala
                   ListTile(
                     title: Text(translation('ui.speechRate')),

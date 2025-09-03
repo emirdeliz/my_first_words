@@ -284,59 +284,7 @@ class _CommunicationItemCardState extends State<CommunicationItemCard>
     }
   }
 
-  String _getBadgeEmoji(String type) {
-    switch (type) {
-      case 'basic':
-        return '';
-      case 'emotions':
-        return '';
-      case 'activities':
-        return '';
-      case 'social':
-        return '';
-      default:
-        return '';
-    }
-  }
-
-  String _defaultIconNameForType(String type) {
-    switch (type) {
-      case 'basic':
-        return 'restaurant';
-      case 'emotions':
-        return 'sentiment_satisfied';
-      case 'activities':
-        return 'sports_esports';
-      case 'social':
-        return 'people';
-      default:
-        return 'help';
-    }
-  }
-
-  Color _toPastel(Color base) {
-    final hsl = HSLColor.fromColor(base);
-    final hslPastel = hsl
-        .withSaturation((hsl.saturation * 0.35).clamp(0.0, 1.0))
-        .withLightness((hsl.lightness * 0.85 + 0.15).clamp(0.0, 1.0));
-    return hslPastel.toColor();
-  }
-
-  // Gera uma variação pastel determinística a partir de uma cor base e uma seed (ex.: nome do ícone)
-  Color _pastelVariant(Color base, String seed,
-      {double saturation = 0.35,
-      double lightness = 0.85,
-      double hueDeltaDegrees = 18}) {
-    final hsl = HSLColor.fromColor(base);
-    final int hash = seed.codeUnits.fold(0, (acc, c) => acc + c);
-    final int deltaIndex = (hash % 5) - 2; // -2..2
-    final double newHue = (hsl.hue + deltaIndex * hueDeltaDegrees) % 360;
-    final HSLColor shifted = hsl
-        .withHue(newHue)
-        .withSaturation((hsl.saturation * saturation).clamp(0.0, 1.0))
-        .withLightness(lightness.clamp(0.0, 1.0));
-    return shifted.toColor();
-  }
+  // Removed unused helpers: _getBadgeEmoji, _defaultIconNameForType, _toPastel, _pastelVariant
 
   // Gera uma variação vibrante determinística a partir de uma cor base e uma seed
   Color _vibrantVariant(Color base, String seed,

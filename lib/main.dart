@@ -58,7 +58,7 @@ class _RootDecider extends StatefulWidget {
 
 class _RootDeciderState extends State<_RootDecider> {
   bool? _onboardingComplete;
-  bool _ttsReady = false;
+  // Removed unused field: _ttsReady
 
   @override
   void initState() {
@@ -86,9 +86,8 @@ class _RootDeciderState extends State<_RootDecider> {
       try {
         final audio = AudioService();
         await audio.initialize(currentLanguage);
-        if (mounted) setState(() => _ttsReady = true);
       } catch (_) {
-        if (mounted) setState(() => _ttsReady = false);
+        // ignore failure silently
       }
     });
 

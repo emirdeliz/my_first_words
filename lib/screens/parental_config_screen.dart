@@ -628,15 +628,6 @@ class _CategoryConfigModalState extends State<CategoryConfigModal> {
         return Icons.help;
     }
   }
-
-  void _showVoiceSelectionDialog(
-      BuildContext context, ParentalConfigProvider parentalProvider) {
-    showDialog(
-      context: context,
-      builder: (context) =>
-          VoiceSelectionDialog(parentalProvider: parentalProvider),
-    );
-  }
 }
 
 // Modal para seleção de voz

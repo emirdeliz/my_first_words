@@ -57,8 +57,8 @@ void main(List<String> args) async {
 
   // Montar lista de palavras
   List<String> icons;
-  if (inputFilePath != null && inputFilePath!.isNotEmpty) {
-    final file = File(inputFilePath!);
+  if (inputFilePath != null && inputFilePath.isNotEmpty) {
+    final file = File(inputFilePath);
     if (!await file.exists()) {
       stderr.writeln('Arquivo não encontrado: $inputFilePath');
       return;
@@ -67,8 +67,8 @@ void main(List<String> args) async {
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
-  } else if (wordsCsv != null && wordsCsv!.isNotEmpty) {
-    icons = wordsCsv!
+  } else if (wordsCsv != null && wordsCsv.isNotEmpty) {
+    icons = wordsCsv
         .split(',')
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
