@@ -14,14 +14,15 @@ class ParentalConfigScreen extends StatefulWidget {
 }
 
 class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
-  void _showVoiceSelectionDialog(
-      BuildContext context, ParentalConfigProvider parentalProvider) {
-    showDialog(
-      context: context,
-      builder: (context) =>
-          VoiceSelectionDialog(parentalProvider: parentalProvider),
-    );
-  }
+  // Método oculto - não usado mais (app usa MP3s como prioridade)
+  // void _showVoiceSelectionDialog(
+  //     BuildContext context, ParentalConfigProvider parentalProvider) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) =>
+  //         VoiceSelectionDialog(parentalProvider: parentalProvider),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -64,42 +65,43 @@ class _ParentalConfigScreenState extends State<ParentalConfigScreen> {
                         ],
                       ),
                       const DSVerticalSpacing.sm(),
-                      DSBody(translation('ui.configureAudiosDesc')),
+                      DSBody(
+                          'Configure quais áudios estarão disponíveis para a criança. O app usa arquivos MP3 quando disponíveis, com fallback para TTS.'),
                       const DSVerticalSpacing.lg(),
-                      // Seleção de voz específica
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          DSButton(
-                            text: LanguageModel.supportedLanguages[context
-                                    .read<LanguageProvider>()
-                                    .currentLanguageCode]!
-                                .getTranslation('ui.chooseVoice'),
-                            icon: Icons.record_voice_over,
-                            outlined: true,
-                            onPressed: () {
-                              _showVoiceSelectionDialog(
-                                  context, parentalProvider);
-                            },
-                          ),
-                          const DSHorizontalSpacing.sm(),
-                          DSButton(
-                            text: LanguageModel.supportedLanguages[context
-                                    .read<LanguageProvider>()
-                                    .currentLanguageCode]!
-                                .getTranslation('ui.preview'),
-                            icon: Icons.play_arrow,
-                            outlined: true,
-                            onPressed: () async {
-                              // Preview: falar uma frase curta com a voz selecionada
-                              final audio = AudioService();
-                              await audio.initialize();
-                              await audio.speak(translation('ui.previewSample'),
-                                  languageProvider.currentLanguageCode);
-                            },
-                          ),
-                        ],
-                      ),
+                      // Seleção de voz específica - OCULTA (app usa MP3s como prioridade)
+                      // Row(
+                      //   crossAxisAlignment: CrossAxisAlignment.center,
+                      //   children: [
+                      //     DSButton(
+                      //       text: LanguageModel.supportedLanguages[context
+                      //               .read<LanguageProvider>()
+                      //               .currentLanguageCode]!
+                      //           .getTranslation('ui.chooseVoice'),
+                      //       icon: Icons.record_voice_over,
+                      //       outlined: true,
+                      //       onPressed: () {
+                      //         _showVoiceSelectionDialog(
+                      //             context, parentalProvider);
+                      //       },
+                      //     ),
+                      //     const DSHorizontalSpacing.sm(),
+                      //     DSButton(
+                      //       text: LanguageModel.supportedLanguages[context
+                      //               .read<LanguageProvider>()
+                      //               .currentLanguageCode]!
+                      //           .getTranslation('ui.preview'),
+                      //       icon: Icons.play_arrow,
+                      //       outlined: true,
+                      //       onPressed: () async {
+                      //         // Preview: falar uma frase curta com a voz selecionada
+                      //         final audio = AudioService();
+                      //         await audio.initialize();
+                      //         await audio.speak(translation('ui.previewSample'),
+                      //             languageProvider.currentLanguageCode);
+                      //       },
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),

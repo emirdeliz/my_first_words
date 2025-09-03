@@ -1,11 +1,13 @@
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
 
   final FlutterTts _flutterTts = FlutterTts();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isInitialized = false;
 
   AudioService._internal() {
@@ -457,6 +459,16 @@ class AudioService {
     try {
       print('🔄 Speak called with text: "$text" and language: $languageCode');
 
+      // Primeiro, tentar tocar MP3 se disponível
+      final mp3Played = await _playMp3IfAvailable(text);
+      if (mp3Played) {
+        print('✅ MP3 played successfully for: $text');
+        return;
+      }
+
+      // Fallback para TTS se MP3 não estiver disponível
+      print('🔄 MP3 not found, falling back to TTS for: $text');
+
       if (!_isInitialized) {
         print('🔄 TTS not initialized, initializing now...');
         await initialize(languageCode);
@@ -507,19 +519,100 @@ class AudioService {
     }
   }
 
+  Future<bool> _playMp3IfAvailable(String text) async {
+    // Criar nome do arquivo baseado no texto
+    final fileName = _textToFileName(text);
+    final audioPath = 'assets/mp3/pt-br/$fileName.mp3';
+
+    try {
+      print('🎵 Attempting to play MP3: $audioPath');
+      print('🎵 File name: $fileName');
+
+      // Parar qualquer áudio que esteja tocando
+      await _audioPlayer.stop();
+
+      // Aguardar um pouco para garantir que o player está pronto
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Tentar tocar o MP3
+      await _audioPlayer.play(AssetSource('mp3/pt-br/$fileName.mp3'));
+      print('✅ MP3 played successfully: $fileName');
+      return true;
+    } catch (e) {
+      print('⚠️ MP3 not available for "$text": $e');
+      print('⚠️ File name attempted: $fileName');
+      return false;
+    }
+  }
+
+  String _textToFileName(String text) {
+    // Mapear textos em português para nomes de arquivos em inglês
+    final Map<String, String> textToFileMap = {
+      // Necessidades básicas
+      'fome': 'food',
+      'comida': 'food',
+      'sede': 'drink',
+      'banheiro': 'bathroom',
+      'sono': 'sleep',
+      'dor': 'pain',
+      'ajuda': 'help',
+
+      // Emoções
+      'feliz': 'happy',
+      'triste': 'sad',
+      'bravo': 'brave',
+      'com medo': 'scared',
+      'animado': 'excited',
+      'cansado': 'tired',
+
+      // Atividades
+      'brincar': 'play',
+      'comer': 'eat',
+      'beber': 'drink',
+      'dormir': 'sleep',
+      'ler': 'read',
+      'desenhar': 'draw',
+
+      // Social
+      'olá': 'hello',
+      'tchau': 'goodbye',
+      'por favor': 'please',
+      'obrigado': 'thanks',
+      'desculpe': 'sorry',
+      'sim': 'yes',
+      'não': 'no',
+    };
+
+    // Tentar mapeamento direto primeiro
+    final lowerText = text.toLowerCase().trim();
+    if (textToFileMap.containsKey(lowerText)) {
+      return textToFileMap[lowerText]!;
+    }
+
+    // Fallback: converter texto para nome de arquivo válido
+    return lowerText
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), '') // Remove caracteres especiais
+        .replaceAll(RegExp(r'\s+'), '_') // Substitui espaços por underscore
+        .replaceAll(RegExp(r'_+'), '_') // Remove underscores duplicados
+        .replaceAll(RegExp(r'^_|_$'), ''); // Remove underscores do início/fim
+  }
+
   Future<void> stop() async {
     try {
       await _flutterTts.stop();
-      print('⏹️ Speech stopped');
+      await _audioPlayer.stop();
+      print('⏹️ Speech and audio stopped');
     } catch (e) {
-      print('❌ Error stopping speech: $e');
+      print('❌ Error stopping speech/audio: $e');
     }
   }
 
   Future<void> openTtsSettings() async {
     try {
-      await _flutterTts.openTtsSettings();
-      print('⚙️ Opened TTS settings');
+      // Note: openTtsSettings não está disponível em todas as versões do flutter_tts
+      // Implementação alternativa pode ser necessária
+      print(
+          '⚙️ TTS settings method not available in current flutter_tts version');
     } catch (e) {
       print('❌ Error opening TTS settings: $e');
     }
@@ -730,5 +823,6 @@ class AudioService {
 
   void dispose() {
     _flutterTts.stop();
+    _audioPlayer.dispose();
   }
 }

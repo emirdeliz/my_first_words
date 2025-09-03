@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
-import '../providers/parental_config_provider.dart';
+
 import '../services/audio_service.dart';
 import '../design_system/design_system.dart';
 import 'parental_config_screen.dart';
-import 'permissions_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,9 +16,10 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final AudioService _audioService = AudioService();
-  double _speechRate = 0.5;
-  double _volume = 1.0;
-  double _pitch = 1.0;
+  // Removidas variáveis de configuração de áudio (app usa MP3s como prioridade)
+  // double _speechRate = 0.5;
+  // double _volume = 1.0;
+  // double _pitch = 1.0;
 
   // Removed unused field: _availableLanguages
 
@@ -37,10 +37,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _testTTS() async {
-    final languageCode = context.read<LanguageProvider>().currentLanguageCode;
-    await _audioService.speak('Teste de configuração do TTS', languageCode);
-  }
+  // Removido método _testTTS (não mais necessário com MP3s)
+  // Future<void> _testTTS() async {
+  //   final languageCode = context.read<LanguageProvider>().currentLanguageCode;
+  //   await _audioService.speak('Teste de configuração do TTS', languageCode);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -82,139 +83,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const DSVerticalSpacing.xl2(),
 
-              // Idioma
-              _buildSection(
-                title: translation('ui.language'),
-                icon: Icons.language,
-                children: [
-                  for (final language in languageProvider.supportedLanguages)
-                    RadioListTile<String>(
-                      title: Text(language.nativeName),
-                      subtitle: Text(language.name),
-                      value: language.code,
-                      groupValue: languageProvider.currentLanguageCode,
-                      onChanged: (value) {
-                        if (value != null) {
-                          languageProvider.setLanguage(value, (languageCode) {
-                            // Atualizar os itens de áudio quando o idioma muda
-                            final parentalProvider =
-                                context.read<ParentalConfigProvider>();
-                            parentalProvider
-                                .setCurrentLanguageCode(languageCode);
-                            parentalProvider.updateLanguage(languageCode);
-                          });
-                          _audioService.setLanguage(value);
-                        }
-                      },
-                      secondary: Icon(
-                        Icons.flag,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                ],
-              ),
+              // Idioma - OCULTO (mantendo apenas PT-BR)
+              // _buildSection(
+              //   title: translation('ui.language'),
+              //   icon: Icons.language,
+              //   children: [
+              //     for (final language in languageProvider.supportedLanguages)
+              //       RadioListTile<String>(
+              //         title: Text(language.nativeName),
+              //         subtitle: Text(language.name),
+              //         value: language.code,
+              //         groupValue: languageProvider.currentLanguageCode,
+              //         onChanged: (value) {
+              //           if (value != null) {
+              //             languageProvider.setLanguage(value, (languageCode) {
+              //               // Atualizar os itens de áudio quando o idioma muda
+              //               final parentalProvider =
+              //                   context.read<ParentalConfigProvider>();
+              //               parentalProvider
+              //                   .setCurrentLanguageCode(languageCode);
+              //               parentalProvider.updateLanguage(languageCode);
+              //             });
+              //             _audioService.setLanguage(value);
+              //           }
+              //         },
+              //         secondary: Icon(
+              //           Icons.flag,
+              //           color: Theme.of(context).colorScheme.primary,
+              //         ),
+              //       ),
+              //   ],
+              // ),
 
-              const DSVerticalSpacing.xl2(),
+              // const DSVerticalSpacing.xl2(),
 
-              // Configurações de TTS
-              _buildSection(
-                title: translation('ui.audioSettings'),
-                icon: Icons.volume_up,
-                children: [
-                  // Baixar vozes offline
-                  ListTile(
-                    title: const Text('Vozes off-line'),
-                    subtitle: const Text(
-                        'Baixar/gerenciar pacotes de voz sem internet'),
-                    leading: const Icon(Icons.download),
-                    trailing: IconButton(
-                      onPressed: () => _audioService.openTtsSettings(),
-                      icon: const Icon(Icons.open_in_new),
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+              // Configurações de TTS - OCULTA (app usa MP3s como prioridade)
+              // _buildSection(
+              //   title: translation('ui.audioSettings'),
+              //   icon: Icons.volume_up,
+              //   children: [
+              //     // Baixar vozes offline
+              //     ListTile(
+              //       title: const Text('Vozes off-line'),
+              //       subtitle: const Text(
+              //           'Baixar/gerenciar pacotes de voz sem internet'),
+              //       leading: const Icon(Icons.download),
+              //       trailing: IconButton(
+              //         onPressed: () => _audioService.openTtsSettings(),
+              //         icon: const Icon(Icons.open_in_new),
+              //         color: Theme.of(context).colorScheme.primary,
+              //       ),
+              //     ),
+              //     // ... outras configurações de áudio
+              //   ],
+              // ),
 
-                  // Taxa de fala
-                  ListTile(
-                    title: Text(translation('ui.speechRate')),
-                    subtitle: Text('${(_speechRate * 100).round()}%'),
-                    leading: const Icon(Icons.speed),
-                    trailing: SizedBox(
-                      width: 200,
-                      child: Slider(
-                        value: _speechRate,
-                        min: 0.1,
-                        max: 1.0,
-                        divisions: 9,
-                        onChanged: (value) {
-                          setState(() {
-                            _speechRate = value;
-                          });
-                          _audioService.setSpeechRate(value);
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Volume
-                  ListTile(
-                    title: Text(translation('ui.volume')),
-                    subtitle: Text('${(_volume * 100).round()}%'),
-                    leading: const Icon(Icons.volume_up),
-                    trailing: SizedBox(
-                      width: 200,
-                      child: Slider(
-                        value: _volume,
-                        min: 0.0,
-                        max: 1.0,
-                        divisions: 10,
-                        onChanged: (value) {
-                          setState(() {
-                            _volume = value;
-                          });
-                          _audioService.setVolume(value);
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Pitch
-                  ListTile(
-                    title: Text(translation('ui.pitch')),
-                    subtitle: Text('${(_pitch * 100).round()}%'),
-                    leading: const Icon(Icons.music_note),
-                    trailing: SizedBox(
-                      width: 200,
-                      child: Slider(
-                        value: _pitch,
-                        min: 0.5,
-                        max: 2.0,
-                        divisions: 15,
-                        onChanged: (value) {
-                          setState(() {
-                            _pitch = value;
-                          });
-                          _audioService.setPitch(value);
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Teste de TTS
-                  ListTile(
-                    title: Text(translation('ui.testTts')),
-                    subtitle: Text(translation('ui.tapToTest')),
-                    leading: const Icon(Icons.play_arrow),
-                    trailing: IconButton(
-                      onPressed: _testTTS,
-                      icon: const Icon(Icons.volume_up),
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-
-              const DSVerticalSpacing.xl2(),
+              // const DSVerticalSpacing.xl2(),
 
               // Configuração Parental
               _buildSection(
@@ -231,30 +155,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ParentalConfigScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              const DSVerticalSpacing.xl2(),
-
-              // Permissões do App
-              _buildSection(
-                title: 'Permissões do App',
-                icon: Icons.security,
-                children: [
-                  DSListItem(
-                    title: 'Gerenciar Permissões',
-                    subtitle: 'Verificar e solicitar permissões necessárias',
-                    trailing:
-                        const DSIcon(Icons.arrow_forward_ios, icon2: true),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PermissionsScreen(),
                         ),
                       );
                     },
