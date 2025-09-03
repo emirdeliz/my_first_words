@@ -6,6 +6,27 @@ import 'package:flutter/material.dart';
 // Script para gerar ícones PNG simples no estilo isométrico
 // Execute com: dart tools/generate_icons.dart
 
+// Resolve o diretório do projeto subindo a partir do local do script até encontrar pubspec.yaml
+Future<Directory> _resolveProjectRootFromScript() async {
+  Directory dir;
+  try {
+    final scriptUri = Platform.script;
+    final fileUri = scriptUri.scheme == 'file'
+        ? scriptUri
+        : Uri.file(scriptUri.toFilePath());
+    dir = Directory.fromUri(fileUri).parent; // tools/
+  } catch (_) {
+    dir = Directory.current;
+  }
+  while (true) {
+    final pubspec = File('${dir.path}/pubspec.yaml');
+    if (await pubspec.exists()) return dir;
+    final parent = dir.parent;
+    if (parent.path == dir.path) return Directory.current; // fallback
+    dir = parent;
+  }
+}
+
 void main(List<String> args) async {
   print('Gerando ícones PNG...');
 
@@ -80,8 +101,16 @@ void main(List<String> args) async {
     ];
   }
 
-  // Criar diretório se não existir
-  final directory = Directory(outputDirPath);
+  // Criar diretório se não existir (resolvendo relativo ao root do projeto)
+  Directory directory;
+  if (outputDirPath.startsWith('/') || outputDirPath.startsWith('~')) {
+    final expanded =
+        outputDirPath.replaceFirst('~', Platform.environment['HOME'] ?? '~');
+    directory = Directory(expanded);
+  } else {
+    final projectRoot = await _resolveProjectRootFromScript();
+    directory = Directory('${projectRoot.path}/$outputDirPath');
+  }
   if (!await directory.exists()) {
     await directory.create(recursive: true);
   }
@@ -102,6 +131,9 @@ Future<void> generateIcon(String name,
 
   // Fundo transparente
   canvas.drawColor(Colors.transparent, ui.BlendMode.clear);
+
+  // Base isométrica (tile losango)
+  _drawIsoBaseTile(canvas, size);
 
   // Gerar ícone baseado no nome
   switch (name) {
@@ -185,55 +217,98 @@ Future<void> generateIcon(String name,
 }
 
 void drawFoodIcon(Canvas canvas, Size size) {
-  final paint = Paint()..style = PaintingStyle.fill;
+  final fill = Paint()..style = PaintingStyle.fill;
+  final stroke = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2
+    ..color = const Color(0xFF647B6B);
 
-  // Prato
-  paint.color = const Color(0xFFE8F5E8);
-  canvas.drawOval(const Rect.fromLTWH(8, 32, 48, 24), paint);
+  // Prato isométrico (elipse inclinada)
+  fill.color = const Color(0xFFF5FAF7);
+  canvas.drawOval(const Rect.fromLTWH(14, 30, 36, 16), fill);
+  canvas.drawOval(const Rect.fromLTWH(14, 30, 36, 16), stroke);
 
-  // Comida
-  paint.color = const Color(0xFFFF6B35);
-  canvas.drawOval(const Rect.fromLTWH(16, 36, 32, 16), paint);
+  // Comida (porção) com leve sombra
+  fill.color = const Color(0xFFE67E4B);
+  canvas.drawOval(const Rect.fromLTWH(20, 33, 18, 10), fill);
+  fill.color = const Color(0xFF5DBB63);
+  canvas.drawOval(const Rect.fromLTWH(32, 34, 12, 8), fill);
 
-  // Talheres
-  paint.color = const Color(0xFF4A4A4A);
-  paint.strokeWidth = 4;
-  paint.style = PaintingStyle.stroke;
+  // Talheres simplificados em perspectiva
+  stroke.strokeWidth = 1.5;
+  canvas.drawLine(
+      const Offset(18, 22), const Offset(24, 30), stroke); // garfo cabo
+  canvas.drawLine(const Offset(24, 30), const Offset(22, 28), stroke);
+  canvas.drawLine(const Offset(24, 30), const Offset(26, 28), stroke);
 
-  // Garfo
-  canvas.drawLine(const Offset(12, 16), const Offset(12, 40), paint);
-  canvas.drawLine(const Offset(8, 16), const Offset(16, 16), paint);
-  canvas.drawLine(const Offset(8, 20), const Offset(16, 20), paint);
-
-  // Faca
-  canvas.drawLine(const Offset(52, 16), const Offset(52, 40), paint);
-  canvas.drawLine(const Offset(48, 16), const Offset(56, 16), paint);
+  canvas.drawLine(
+      const Offset(46, 22), const Offset(40, 30), stroke); // faca cabo
+  canvas.drawLine(const Offset(40, 30), const Offset(44, 28), stroke);
 }
 
 void drawDrinkIcon(Canvas canvas, Size size) {
-  final paint = Paint()..style = PaintingStyle.fill;
+  final fill = Paint()..style = PaintingStyle.fill;
+  final stroke = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2
+    ..color = const Color(0xFF5A7CA3);
 
-  // Copo
-  paint.color = const Color(0xFFE3F2FD);
-  final cupPath = Path()
-    ..moveTo(16, 40)
-    ..lineTo(16, 24)
-    ..lineTo(24, 16)
-    ..lineTo(40, 16)
-    ..lineTo(48, 24)
-    ..lineTo(48, 40)
+  // Copo isométrico (trapézio com topo menor)
+  fill.color = const Color(0xFFE7F1FF);
+  final cup = Path()
+    ..moveTo(24, 22)
+    ..lineTo(40, 22)
+    ..lineTo(44, 40)
+    ..lineTo(20, 40)
     ..close();
-  canvas.drawPath(cupPath, paint);
+  canvas.drawPath(cup, fill);
+  canvas.drawPath(cup, stroke);
 
-  // Bebida
-  paint.color = const Color(0xFF81C784);
-  canvas.drawRect(const Rect.fromLTWH(20, 28, 24, 12), paint);
+  // Líquido no copo
+  fill.color = const Color(0xFF78C2A4);
+  final liquid = Path()
+    ..moveTo(24.5, 30)
+    ..lineTo(39.5, 30)
+    ..lineTo(41.5, 38)
+    ..lineTo(22.5, 38)
+    ..close();
+  canvas.drawPath(liquid, fill);
 
-  // Canudo
-  paint.color = const Color(0xFFFF9800);
-  paint.strokeWidth = 4;
-  paint.style = PaintingStyle.stroke;
-  canvas.drawLine(const Offset(32, 12), const Offset(32, 24), paint);
+  // Canudo com leve inclinação
+  final straw = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.5
+    ..color = const Color(0xFFFFA726);
+  canvas.drawLine(const Offset(30, 16), const Offset(34, 24), straw);
+}
+
+void _drawIsoBaseTile(Canvas canvas, Size size) {
+  final base = Paint()..style = PaintingStyle.fill;
+  // Sombra
+  base.color = const Color(0x22000000);
+  final shadow = Path()
+    ..moveTo(32, 56)
+    ..lineTo(54, 44)
+    ..lineTo(32, 52)
+    ..lineTo(10, 44)
+    ..close();
+  canvas.drawPath(shadow, base);
+
+  // Tile losango
+  base.color = const Color(0xFFEAF3EE);
+  final tile = Path()
+    ..moveTo(32, 48)
+    ..lineTo(54, 36)
+    ..lineTo(32, 24)
+    ..lineTo(10, 36)
+    ..close();
+  canvas.drawPath(tile, base);
+
+  final border = Paint()
+    ..style = PaintingStyle.stroke
+    ..color = const Color(0xFFB5D1C0)
+    ..strokeWidth = 1.5;
+  canvas.drawPath(tile, border);
 }
 
 void drawReadIcon(Canvas canvas, Size size) {
