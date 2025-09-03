@@ -11,6 +11,8 @@ class LanguageModel {
     required this.translations,
   });
 
+  // https://ttsmp3.com/
+
   static const Map<String, LanguageModel> supportedLanguages = {
     'pt-BR': LanguageModel(
       code: 'pt-BR',
@@ -140,13 +142,15 @@ class LanguageModel {
         },
         'parentalConfig': {
           'noAudioConfigured': 'Nenhum áudio configurado',
-          'goToSettings': 'Vá para as configurações - Configuração Parental para ativar alguns áudios.',
+          'goToSettings':
+              'Vá para as configurações - Configuração Parental para ativar alguns áudios.',
           'level1Title': 'Palavras',
           'level1Desc': 'Palavras simples: "Água", "Comida", "Ajuda"',
           'level2Title': 'Frases Curtas',
           'level2Desc': 'Frases curtas: "Quero água", "Estou com fome"',
           'level3Title': 'Frases Complexas',
-          'level3Desc': 'Frases completas: "Eu gostaria de beber água, por favor"',
+          'level3Desc':
+              'Frases completas: "Eu gostaria de beber água, por favor"',
         },
         'categories': {
           'basicNeeds': 'Necessidades Básicas',
@@ -166,15 +170,18 @@ class LanguageModel {
           'tapToTest': 'Toque para testar as configurações',
           'parentalConfig': 'Configuração Parental',
           'configureAudios': 'Configurar Áudios Disponíveis',
-          'configureAudiosDesc': 'Configure quais áudios estarão disponíveis para a criança',
+          'configureAudiosDesc':
+              'Configure quais áudios estarão disponíveis para a criança',
           'version': 'Versão',
           'developer': 'Desenvolvedor',
           'description': 'Descrição',
-          'appDescription': 'Aplicativo de comunicação alternativa para crianças autistas',
+          'appDescription':
+              'Aplicativo de comunicação alternativa para crianças autistas',
           'chooseVoice': 'Escolher Voz',
           'preview': 'Prévia',
           'communicationLevel': 'Nível de Comunicação',
-          'communicationLevelDesc': 'Defina a complexidade das frases para a criança.',
+          'communicationLevelDesc':
+              'Defina a complexidade das frases para a criança.',
           'enableAll': 'Habilitar Todos',
           'disableAll': 'Desabilitar Todos',
           'loadingVoices': 'Carregando vozes disponíveis...',
@@ -197,9 +204,11 @@ class LanguageModel {
           'languageTest': 'Teste de Idiomas (4 idiomas)',
           'stopSpeech': 'Parar Fala',
           'instructions': 'Instruções:',
-          'instruction1': '• Toque nos botões para testar diferentes funcionalidades',
+          'instruction1':
+              '• Toque nos botões para testar diferentes funcionalidades',
           'instruction2': '• Use o botão "Parar Fala" para interromper o TTS',
-          'instruction3': '• Teste 4 idiomas: Português, Inglês, Espanhol e Alemão',
+          'instruction3':
+              '• Teste 4 idiomas: Português, Inglês, Espanhol e Alemão',
           'instruction4': '• Verifique se o som está funcionando corretamente',
         },
       },
@@ -267,7 +276,8 @@ class LanguageModel {
         },
         'parentalConfig': {
           'noAudioConfigured': 'No audio configured',
-          'goToSettings': 'Go to settings - Parental Configuration to enable some audios.',
+          'goToSettings':
+              'Go to settings - Parental Configuration to enable some audios.',
           'level1Title': 'Words',
           'level1Desc': 'Simple words: "Water", "Food", "Help"',
           'level2Title': 'Short Phrases',
@@ -293,11 +303,13 @@ class LanguageModel {
           'tapToTest': 'Tap to test settings',
           'parentalConfig': 'Parental Configuration',
           'configureAudios': 'Configure Available Audios',
-          'configureAudiosDesc': 'Choose which audios will be available to the child',
+          'configureAudiosDesc':
+              'Choose which audios will be available to the child',
           'version': 'Version',
           'developer': 'Developer',
           'description': 'Description',
-          'appDescription': 'Alternative communication app for autistic children',
+          'appDescription':
+              'Alternative communication app for autistic children',
           'chooseVoice': 'Choose Voice',
           'preview': 'Preview',
           'communicationLevel': 'Communication Level',
@@ -326,7 +338,8 @@ class LanguageModel {
           'instructions': 'Instructions:',
           'instruction1': '• Tap buttons to test different features',
           'instruction2': '• Use "Stop Speech" button to interrupt TTS',
-          'instruction3': '• Test 4 languages: Portuguese, English, Spanish and German',
+          'instruction3':
+              '• Test 4 languages: Portuguese, English, Spanish and German',
           'instruction4': '• Check if sound is working correctly',
         },
       },
@@ -459,7 +472,8 @@ class LanguageModel {
         },
         'parentalConfig': {
           'noAudioConfigured': 'No hay audio configurado',
-          'goToSettings': 'Ve a la configuración - Configuración Parental para activar algunos audios.',
+          'goToSettings':
+              'Ve a la configuración - Configuración Parental para activar algunos audios.',
           'level1Title': 'Palabras',
           'level1Desc': 'Palabras simples: "Agua", "Comida", "Ayuda"',
           'level2Title': 'Frases Cortas',
@@ -484,15 +498,18 @@ class LanguageModel {
           'tapToTest': 'Toca para probar la configuración',
           'parentalConfig': 'Configuración Parental',
           'configureAudios': 'Configurar Audios Disponibles',
-          'configureAudiosDesc': 'Configura qué audios estarán disponibles para el niño',
+          'configureAudiosDesc':
+              'Configura qué audios estarán disponibles para el niño',
           'version': 'Versión',
           'developer': 'Desarrollador',
           'description': 'Descripción',
-          'appDescription': 'Aplicación de comunicación alternativa para niños autistas',
+          'appDescription':
+              'Aplicación de comunicación alternativa para niños autistas',
           'chooseVoice': 'Elegir Voz',
           'preview': 'Vista previa',
           'communicationLevel': 'Nivel de Comunicación',
-          'communicationLevelDesc': 'Define la complejidad de las frases para el niño.',
+          'communicationLevelDesc':
+              'Define la complejidad de las frases para el niño.',
           'enableAll': 'Habilitar Todos',
           'disableAll': 'Deshabilitar Todos',
           'loadingVoices': 'Cargando voces disponibles...',
@@ -508,17 +525,22 @@ class LanguageModel {
           'categories': 'Categorías',
           'configure': 'Configurar',
           'previewSample': '¡Hola! Esta es una vista previa de la voz.',
-          'selectVoiceSubtitle': 'Selecciona la voz que la app usará para hablar',
+          'selectVoiceSubtitle':
+              'Selecciona la voz que la app usará para hablar',
           'ttsTest': 'Prueba TTS',
           'basicTest': 'Prueba Básica',
           'testWithOptions': 'Prueba con Opciones',
           'languageTest': 'Prueba de Idiomas (4 idiomas)',
           'stopSpeech': 'Detener Habla',
           'instructions': 'Instrucciones:',
-          'instruction1': '• Toca los botones para probar diferentes funcionalidades',
-          'instruction2': '• Usa el botón "Detener Habla" para interrumpir el TTS',
-          'instruction3': '• Prueba 4 idiomas: Portugués, Inglés, Español y Alemán',
-          'instruction4': '• Verifica si el sonido está funcionando correctamente',
+          'instruction1':
+              '• Toca los botones para probar diferentes funcionalidades',
+          'instruction2':
+              '• Usa el botón "Detener Habla" para interrumpir el TTS',
+          'instruction3':
+              '• Prueba 4 idiomas: Portugués, Inglés, Español y Alemán',
+          'instruction4':
+              '• Verifica si el sonido está funcionando correctamente',
         },
       },
     ),
@@ -650,7 +672,8 @@ class LanguageModel {
         },
         'parentalConfig': {
           'noAudioConfigured': 'Kein Audio konfiguriert',
-          'goToSettings': 'Gehen Sie zu den Einstellungen - Elternkonfiguration, um einige Audios zu aktivieren.',
+          'goToSettings':
+              'Gehen Sie zu den Einstellungen - Elternkonfiguration, um einige Audios zu aktivieren.',
           'level1Title': 'Wörter',
           'level1Desc': 'Einfache Wörter: "Wasser", "Essen", "Hilfe"',
           'level2Title': 'Kurze Sätze',
@@ -675,15 +698,18 @@ class LanguageModel {
           'tapToTest': 'Tippen Sie, um die Einstellungen zu testen',
           'parentalConfig': 'Elternkonfiguration',
           'configureAudios': 'Verfügbare Audios konfigurieren',
-          'configureAudiosDesc': 'Konfigurieren Sie, welche Audios für das Kind verfügbar sind',
+          'configureAudiosDesc':
+              'Konfigurieren Sie, welche Audios für das Kind verfügbar sind',
           'version': 'Version',
           'developer': 'Entwickler',
           'description': 'Beschreibung',
-          'appDescription': 'Alternative Kommunikations-App für autistische Kinder',
+          'appDescription':
+              'Alternative Kommunikations-App für autistische Kinder',
           'chooseVoice': 'Stimme wählen',
           'preview': 'Vorschau',
           'communicationLevel': 'Kommunikationsniveau',
-          'communicationLevelDesc': 'Definieren Sie die Komplexität der Sätze für das Kind.',
+          'communicationLevelDesc':
+              'Definieren Sie die Komplexität der Sätze für das Kind.',
           'enableAll': 'Alle aktivieren',
           'disableAll': 'Alle deaktivieren',
           'loadingVoices': 'Verfügbare Stimmen werden geladen...',
@@ -699,16 +725,20 @@ class LanguageModel {
           'categories': 'Kategorien',
           'configure': 'Konfigurieren',
           'previewSample': 'Hallo! Dies ist eine Stimmvorschau.',
-          'selectVoiceSubtitle': 'Wählen Sie die Stimme, die die App zum Sprechen verwenden wird',
+          'selectVoiceSubtitle':
+              'Wählen Sie die Stimme, die die App zum Sprechen verwenden wird',
           'ttsTest': 'TTS-Test',
           'basicTest': 'Grundtest',
           'testWithOptions': 'Test mit Optionen',
           'languageTest': 'Sprachtest (4 Sprachen)',
           'stopSpeech': 'Sprache stoppen',
           'instructions': 'Anweisungen:',
-          'instruction1': '• Tippen Sie auf die Schaltflächen, um verschiedene Funktionen zu testen',
-          'instruction2': '• Verwenden Sie die Schaltfläche "Sprache stoppen", um TTS zu unterbrechen',
-          'instruction3': '• Testen Sie 4 Sprachen: Portugiesisch, Englisch, Spanisch und Deutsch',
+          'instruction1':
+              '• Tippen Sie auf die Schaltflächen, um verschiedene Funktionen zu testen',
+          'instruction2':
+              '• Verwenden Sie die Schaltfläche "Sprache stoppen", um TTS zu unterbrechen',
+          'instruction3':
+              '• Testen Sie 4 Sprachen: Portugiesisch, Englisch, Spanisch und Deutsch',
           'instruction4': '• Überprüfen Sie, ob der Ton korrekt funktioniert',
         },
       },
@@ -718,7 +748,7 @@ class LanguageModel {
   String getTranslation(String key) {
     final keys = key.split('.');
     dynamic current = translations;
-    
+
     for (final k in keys) {
       if (current is Map && current.containsKey(k)) {
         current = current[k];
@@ -726,7 +756,7 @@ class LanguageModel {
         return key; // Fallback to key if translation not found
       }
     }
-    
+
     return current?.toString() ?? key;
   }
 }
