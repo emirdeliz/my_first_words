@@ -6,50 +6,96 @@ import 'package:flutter/material.dart';
 // Script para gerar ícones PNG simples no estilo isométrico
 // Execute com: dart tools/generate_icons.dart
 
-void main() async {
+void main(List<String> args) async {
   print('Gerando ícones PNG...');
 
+  // Opções de CLI:
+  // --input=path.txt  | caminho para arquivo com uma palavra por linha
+  // --words=a,b,c     | lista separada por vírgulas
+  // --output=dir      | diretório de saída (padrão: assets/images/fun)
+
+  String? inputFilePath;
+  String? wordsCsv;
+  String outputDirPath = 'assets/images/fun';
+
+  for (final arg in args) {
+    if (arg.startsWith('--input=')) {
+      inputFilePath = arg.substring('--input='.length);
+    } else if (arg.startsWith('--words=')) {
+      wordsCsv = arg.substring('--words='.length);
+    } else if (arg.startsWith('--output=')) {
+      outputDirPath = arg.substring('--output='.length);
+    } else if (arg == '--help' || arg == '-h') {
+      print(
+          '\nUso: flutter run -d macos -t tools/generate_icons.dart -- --input=tools/words.txt --output=assets/images/fun');
+      print(
+          '     flutter run -d macos -t tools/generate_icons.dart -- --words=food,drink,help --output=assets/images/fun');
+      return;
+    }
+  }
+
+  // Montar lista de palavras
+  List<String> icons;
+  if (inputFilePath != null && inputFilePath!.isNotEmpty) {
+    final file = File(inputFilePath!);
+    if (!await file.exists()) {
+      stderr.writeln('Arquivo não encontrado: $inputFilePath');
+      return;
+    }
+    icons = (await file.readAsLines())
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  } else if (wordsCsv != null && wordsCsv!.isNotEmpty) {
+    icons = wordsCsv!
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  } else {
+    // Fallback: lista padrão
+    icons = [
+      'food',
+      'drink',
+      'bathroom',
+      'sleep',
+      'medicine',
+      'help',
+      'happy',
+      'sad',
+      'angry',
+      'scared',
+      'excited',
+      'tired',
+      'play',
+      'read',
+      'draw',
+      'toys',
+      'hello',
+      'love',
+      'yes',
+      'no',
+      'da',
+      'more',
+    ];
+  }
+
   // Criar diretório se não existir
-  final directory = Directory('assets/images/fun');
+  final directory = Directory(outputDirPath);
   if (!await directory.exists()) {
     await directory.create(recursive: true);
   }
 
-  // Lista de ícones para gerar
-  final icons = [
-    'food',
-    'drink',
-    'bathroom',
-    'sleep',
-    'medicine',
-    'help',
-    'happy',
-    'sad',
-    'angry',
-    'scared',
-    'excited',
-    'tired',
-    'play',
-    'read',
-    'draw',
-    'toys',
-    'hello',
-    'love',
-    'yes',
-    'no',
-    'da',
-    'more',
-  ];
-
   for (final iconName in icons) {
-    await generateIcon(iconName);
+    await generateIcon(iconName, outputDirPath: directory.path);
     print('✓ Gerado: $iconName.png');
   }
 
-  print('\n✅ Todos os ícones foram gerados em assets/images/fun/');
+  print('\n✅ Todos os ícones foram gerados em ${directory.path}/');
 }
 
-Future<void> generateIcon(String name) async {
+Future<void> generateIcon(String name,
+    {String outputDirPath = 'assets/images/fun'}) async {
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder);
   const size = ui.Size(64, 64);
@@ -134,7 +180,7 @@ Future<void> generateIcon(String name) async {
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   final bytes = byteData!.buffer.asUint8List();
 
-  final file = File('assets/images/fun/$name.png');
+  final file = File('$outputDirPath/$name.png');
   await file.writeAsBytes(bytes);
 }
 
